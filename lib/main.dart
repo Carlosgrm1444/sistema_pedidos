@@ -6,7 +6,13 @@ void main() {
 
 // Base de datos simulada en memoria para probar el registro y el login.
 // En un proyecto real, esto se conectaría a Firebase o una API.
-final Map<String, Map<String, String>> mockDatabase = {};
+final Map<String, Map<String, String>> mockDatabase = {
+  'admin@sqlbros.com': {
+    'nombre': 'Memo',
+    'apellidos': 'Admin',
+    'password': '123',
+  },
+};
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
