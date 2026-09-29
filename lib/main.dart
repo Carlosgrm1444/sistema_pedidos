@@ -19,7 +19,8 @@ class MyApp extends StatelessWidget {
         // Tema estilo oficina: Colores neutros, azules y grises
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF1E3A8A), // Azul corporativo
-          background: Colors.grey[200], // Fondo gris claro para resaltar la tarjeta
+          background:
+              Colors.grey[200], // Fondo gris claro para resaltar la tarjeta
         ),
         useMaterial3: true,
       ),
@@ -59,11 +60,12 @@ class _LoginPageState extends State<LoginPage> {
           // Login exitoso
           final nombre = mockDatabase[email]!['nombre']!;
           final apellidos = mockDatabase[email]!['apellidos']!;
-          
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => HomePage(nombre: nombre, apellidos: apellidos),
+              builder: (context) =>
+                  HomePage(nombre: nombre, apellidos: apellidos),
             ),
           );
         } else {
@@ -100,14 +102,21 @@ class _LoginPageState extends State<LoginPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.business, size: 80, color: Color(0xFF1E3A8A)),
+                      const Icon(
+                        Icons.business,
+                        size: 80,
+                        color: Color(0xFF1E3A8A),
+                      ),
                       const SizedBox(height: 16),
                       const Text(
                         'SQL_BROS',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 32),
-                      
+
                       // Campo de Correo
                       TextFormField(
                         controller: _emailCtrl,
@@ -125,7 +134,7 @@ class _LoginPageState extends State<LoginPage> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Campo de Contraseña
                       TextFormField(
                         controller: _passwordCtrl,
@@ -142,18 +151,21 @@ class _LoginPageState extends State<LoginPage> {
                           return null;
                         },
                       ),
-                      
+
                       // Mensaje de Error
                       if (_errorMessage != null) ...[
                         const SizedBox(height: 16),
                         Text(
                           _errorMessage!,
-                          style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
-                      
+
                       const SizedBox(height: 24),
-                      
+
                       // Botón de Iniciar Sesión
                       ElevatedButton(
                         onPressed: _login,
@@ -165,16 +177,20 @@ class _LoginPageState extends State<LoginPage> {
                         child: const Text('Iniciar Sesión'),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Enlace a Registro
                       TextButton(
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const RegisterPage()),
+                            MaterialPageRoute(
+                              builder: (context) => const RegisterPage(),
+                            ),
                           );
                         },
-                        child: const Text('¿No tienes cuenta? Solicita acceso aquí'),
+                        child: const Text(
+                          '¿No tienes cuenta? Solicita acceso aquí',
+                        ),
                       ),
                     ],
                   ),
@@ -223,11 +239,15 @@ class _RegisterPageState extends State<RegisterPage> {
           behavior: SnackBarBehavior.floating, // Hace que la notificación flote
           backgroundColor: Colors.white, // Fondo de la tarjeta
           elevation: 8, // Sombra para dar profundidad
-          margin: const EdgeInsets.all(16), // Separación de los bordes de la pantalla
+          margin: const EdgeInsets.all(
+            16,
+          ), // Separación de los bordes de la pantalla
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16), // Bordes redondeados
           ),
-          duration: const Duration(seconds: 4), // Tiempo que permanece en pantalla
+          duration: const Duration(
+            seconds: 4,
+          ), // Tiempo que permanece en pantalla
           content: Row(
             children: [
               // Icono circular (simulando un avatar o badge de verificación)
@@ -244,7 +264,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
               const SizedBox(width: 16),
-              
+
               // Textos de la notificación
               Expanded(
                 child: Column(
@@ -262,10 +282,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     SizedBox(height: 4),
                     Text(
                       'Ya puedes iniciar sesión con tu cuenta.',
-                      style: TextStyle(
-                        color: Colors.black54,
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(color: Colors.black54, fontSize: 14),
                     ),
                   ],
                 ),
@@ -307,10 +324,13 @@ class _RegisterPageState extends State<RegisterPage> {
                     children: [
                       const Text(
                         'Nuevo Registro',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Nombre y Apellidos (En fila si hay espacio)
                       Row(
                         children: [
@@ -321,7 +341,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                 labelText: 'Nombre',
                                 border: OutlineInputBorder(),
                               ),
-                              validator: (value) => value!.isEmpty ? 'Requerido' : null,
+                              validator: (value) =>
+                                  value!.isEmpty ? 'Requerido' : null,
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -332,13 +353,14 @@ class _RegisterPageState extends State<RegisterPage> {
                                 labelText: 'Apellidos',
                                 border: OutlineInputBorder(),
                               ),
-                              validator: (value) => value!.isEmpty ? 'Requerido' : null,
+                              validator: (value) =>
+                                  value!.isEmpty ? 'Requerido' : null,
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Campo de Correo
                       TextFormField(
                         controller: _emailCtrl,
@@ -349,13 +371,15 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
-                          if (value == null || value.isEmpty) return 'Requerido';
-                          if (mockDatabase.containsKey(value)) return 'Este correo ya está registrado';
+                          if (value == null || value.isEmpty)
+                            return 'Requerido';
+                          if (mockDatabase.containsKey(value))
+                            return 'Este correo ya está registrado';
                           return null;
                         },
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Campo de Contraseña
                       TextFormField(
                         controller: _passwordCtrl,
@@ -365,7 +389,8 @@ class _RegisterPageState extends State<RegisterPage> {
                           prefixIcon: Icon(Icons.lock),
                         ),
                         obscureText: true,
-                        validator: (value) => value!.isEmpty ? 'Requerido' : null,
+                        validator: (value) =>
+                            value!.isEmpty ? 'Requerido' : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -378,7 +403,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         obscureText: true,
                         validator: (value) {
-                          if (value == null || value.isEmpty) return 'Requerido';
+                          if (value == null || value.isEmpty)
+                            return 'Requerido';
                           if (value != _passwordCtrl.text) {
                             return 'Las contraseñas no coinciden';
                           }
@@ -386,7 +412,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         },
                       ),
                       const SizedBox(height: 32),
-                      
+
                       // Botón de Registrarse
                       ElevatedButton(
                         onPressed: _register,
@@ -410,48 +436,227 @@ class _RegisterPageState extends State<RegisterPage> {
 }
 
 // ==========================================
-// PANTALLA PRINCIPAL (HOME)
+// PANTALLA PRINCIPAL (HOME) - SISTEMA DE PEDIDOS
 // ==========================================
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   final String nombre;
   final String apellidos;
 
   const HomePage({super.key, required this.nombre, required this.apellidos});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  // Controladores para capturar la información
+  final TextEditingController _productoCtrl = TextEditingController();
+  final TextEditingController _precioCtrl = TextEditingController();
+  final TextEditingController _cantidadCtrl = TextEditingController();
+
+  // Memoria temporal para registrar los productos del pedido
+  final List<Map<String, dynamic>> _pedido = [];
+
+  void _agregarProducto() {
+    if (_productoCtrl.text.isNotEmpty && _precioCtrl.text.isNotEmpty) {
+      setState(() {
+        _pedido.add({
+          'nombre': _productoCtrl.text,
+          'precio': double.tryParse(_precioCtrl.text) ?? 0.0,
+          'cantidad': int.tryParse(_cantidadCtrl.text) ?? 1,
+        });
+      });
+
+      // Limpiar campos tras registrar
+      _productoCtrl.clear();
+      _precioCtrl.clear();
+      _cantidadCtrl.clear();
+    }
+  }
+
+  double get _totalPedido {
+    double total = 0;
+    for (var item in _pedido) {
+      total += (item['precio'] * item['cantidad']);
+    }
+    return total;
+  }
+
+  @override
+  void dispose() {
+    _productoCtrl.dispose();
+    _precioCtrl.dispose();
+    _cantidadCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('Panel Principal'),
+        title: Text('Sistema de Pedidos - ${widget.nombre}'),
         backgroundColor: const Color(0xFF1E3A8A),
         foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
+            tooltip: 'Cerrar sesión',
             onPressed: () {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const LoginPage()),
               );
             },
-          )
+          ),
         ],
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.waving_hand, size: 80, color: Colors.orange),
-            const SizedBox(height: 24),
-            Text(
-              'Bienvenido, $nombre $apellidos',
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
+            // Captura de datos
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Registrar Producto',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E3A8A),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _productoCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Nombre del producto',
+                        prefixIcon: Icon(Icons.shopping_bag_outlined),
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _precioCtrl,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Precio (\$)',
+                              prefixIcon: Icon(Icons.attach_money),
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextField(
+                            controller: _cantidadCtrl,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Cantidad',
+                              prefixIcon: Icon(Icons.numbers),
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: _agregarProducto,
+                      icon: const Icon(Icons.add_shopping_cart),
+                      label: const Text('Agregar al Pedido'),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 45),
+                        backgroundColor: const Color(0xFF1E3A8A),
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Has iniciado sesión correctamente.',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+            const SizedBox(height: 20),
+
+            // Visualización de la información capturada
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Detalle del Pedido',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'Total: \$${_totalPedido.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            Expanded(
+              child: _pedido.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'No hay productos en el pedido.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: _pedido.length,
+                      itemBuilder: (context, index) {
+                        final item = _pedido[index];
+                        final double subtotal =
+                            item['precio'] * item['cantidad'];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: const Color(
+                                0xFF1E3A8A,
+                              ).withOpacity(0.1),
+                              child: Text(
+                                '${item['cantidad']}x',
+                                style: const TextStyle(
+                                  color: Color(0xFF1E3A8A),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            title: Text(
+                              item['nombre'],
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(
+                              'Precio unitario: \$${item['precio']}',
+                            ),
+                            trailing: Text(
+                              '\$${subtotal.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
