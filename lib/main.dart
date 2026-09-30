@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
         // Tema estilo oficina: Colores neutros, azules y grises
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF1E3A8A), // Azul corporativo
-          background:
+          surface:
               Colors.grey[200], // Fondo gris claro para resaltar la tarjeta
         ),
         useMaterial3: true,
@@ -260,7 +260,7 @@ class _RegisterPageState extends State<RegisterPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
+                  color: Colors.green.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -377,10 +377,12 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
-                          if (value == null || value.isEmpty)
+                          if (value == null || value.isEmpty) {
                             return 'Requerido';
-                          if (mockDatabase.containsKey(value))
+                          }
+                          if (mockDatabase.containsKey(value)) {
                             return 'Este correo ya está registrado';
+                          }
                           return null;
                         },
                       ),
@@ -409,8 +411,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         obscureText: true,
                         validator: (value) {
-                          if (value == null || value.isEmpty)
+                          if (value == null || value.isEmpty) {
                             return 'Requerido';
+                          }
                           if (value != _passwordCtrl.text) {
                             return 'Las contraseñas no coinciden';
                           }
@@ -634,7 +637,7 @@ class _HomePageState extends State<HomePage> {
                             leading: CircleAvatar(
                               backgroundColor: const Color(
                                 0xFF1E3A8A,
-                              ).withOpacity(0.1),
+                              ).withValues(alpha: 0.1),
                               child: Text(
                                 '${item['cantidad']}x',
                                 style: const TextStyle(

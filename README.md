@@ -3,9 +3,15 @@
 Proyecto Flutter del Grupo 5 para la materia Desarrollo de Aplicaciones
 Móviles.
 
-Por ahora contiene únicamente la plantilla inicial generada por Flutter. La
-interfaz y las funcionalidades de la Etapa 1 se definirán y desarrollarán en
-equipo posteriormente.
+Actualmente incluye inicio de sesión, registro temporal de usuarios y una
+pantalla para agregar productos a un pedido, indicar precio y cantidad, mostrar
+el detalle y calcular el total. Los datos permanecen solamente en memoria
+mientras la aplicación está abierta.
+
+Usuario predeterminado para pruebas:
+
+- Correo: `admin@sqlbros.com`
+- Contraseña: `123`
 
 ## Requisitos
 
