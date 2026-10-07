@@ -1504,6 +1504,33 @@ class OrdersPanel extends StatefulWidget {
 class _OrdersPanelState extends State<OrdersPanel> {
   String userFilter = '';
   String clientFilter = '';
+  String statusFilter = '';
+
+  Widget _statusFilterField(BuildContext context) => SizedBox(
+    width: 250,
+    child: DropdownButtonFormField<String>(
+      isExpanded: true,
+      key: ValueKey('status-$statusFilter-${widget.statuses.length}'),
+      initialValue: statusFilter,
+      decoration: const InputDecoration(labelText: 'Estado'),
+      items: [
+        const DropdownMenuItem(value: '', child: Text('Todos')),
+        for (final status in widget.statuses)
+          DropdownMenuItem(
+            value: status.id,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _StatusDot(color: statusColor(context, status)),
+                const SizedBox(width: 8),
+                Text(status.text('name')),
+              ],
+            ),
+          ),
+      ],
+      onChanged: (value) => setState(() => statusFilter = value ?? ''),
+    ),
+  );
 
   Future<void> _confirmDelivery(Item order) async {
     final confirmed = await showDialog<bool>(
@@ -1549,7 +1576,9 @@ class _OrdersPanelState extends State<OrdersPanel> {
         .where(
           (order) =>
               (userFilter.isEmpty || order.text('assignedUid') == userFilter) &&
-              (clientFilter.isEmpty || order.text('clientId') == clientFilter),
+              (clientFilter.isEmpty ||
+                  order.text('clientId') == clientFilter) &&
+              (statusFilter.isEmpty || order.text('statusId') == statusFilter),
         )
         .toList();
     final statusColors = {
@@ -1640,8 +1669,14 @@ class _OrdersPanelState extends State<OrdersPanel> {
                             setState(() => clientFilter = value ?? ''),
                       ),
                     ),
+                    _statusFilterField(context),
                   ],
                 ),
+              ),
+            if (!widget.admin)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                child: _statusFilterField(context),
               ),
             if (visible.isEmpty)
               EmptyState(
