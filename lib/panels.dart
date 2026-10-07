@@ -99,6 +99,18 @@ String itemName(List<Item> items, String id) {
   return 'Sin asignar';
 }
 
+Color statusColor(BuildContext context, Item status) {
+  final raw = status.data['color'];
+  if (raw is num) return Color(raw.toInt());
+  return switch (status.id) {
+    'pending' => const Color(0xFFFFB547),
+    'preparing' => const Color(0xFF4C8DFF),
+    'shipped' => const Color(0xFF9B7BFF),
+    'delivered' => const Color(0xFF36C98F),
+    _ => Theme.of(context).colorScheme.primary,
+  };
+}
+
 class OverviewPanel extends StatefulWidget {
   const OverviewPanel({
     required this.orders,
@@ -1115,43 +1127,102 @@ class StatusesPanel extends StatelessWidget {
 
   Future<void> _edit(BuildContext context, [Item? item]) async {
     final name = TextEditingController(text: item?.text('name') ?? '');
+    var selectedColor = item?.data['color'] is num
+        ? (item!.data['color'] as num).toInt()
+        : 0xFF4C8DFF;
+    const palette = [
+      0xFFFFB547,
+      0xFF4C8DFF,
+      0xFF9B7BFF,
+      0xFF36C98F,
+      0xFFEF6C78,
+      0xFF22B8CF,
+    ];
     await showDialog<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(item == null ? 'Nuevo estado' : 'Editar estado'),
-        content: SizedBox(
-          width: 400,
-          child: TextField(
-            controller: name,
-            decoration: const InputDecoration(labelText: 'Nombre'),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, update) => AlertDialog(
+          title: Text(item == null ? 'Nuevo estado' : 'Editar estado'),
+          content: SizedBox(
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: name,
+                  decoration: const InputDecoration(labelText: 'Nombre'),
+                ),
+                const SizedBox(height: 18),
+                const Text('Color del estado'),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 10,
+                  children: [
+                    for (final color in palette)
+                      InkWell(
+                        onTap: () => update(() => selectedColor = color),
+                        borderRadius: BorderRadius.circular(24),
+                        child: AnimatedContainer(
+                          duration: motionDuration(context, 180),
+                          width: 34,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            color: Color(color),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: selectedColor == color
+                                  ? Theme.of(context).colorScheme.onSurface
+                                  : Colors.transparent,
+                              width: 3,
+                            ),
+                          ),
+                          child: selectedColor == color
+                              ? const Icon(
+                                  Icons.check,
+                                  size: 18,
+                                  color: Colors.white,
+                                )
+                              : null,
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              if (name.text.trim().isEmpty) return;
-              try {
-                if (item == null) {
-                  await Store.instance.addStatus(
-                    name.text,
-                    (statuses.lastOrNull?.number('rank') ?? 0) + 10,
-                  );
-                } else {
-                  await Store.instance.saveStatus(item.id, name.text);
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                if (name.text.trim().isEmpty) return;
+                try {
+                  if (item == null) {
+                    await Store.instance.addStatus(
+                      name.text,
+                      (statuses.lastOrNull?.number('rank') ?? 0) + 10,
+                      color: selectedColor,
+                    );
+                  } else {
+                    await Store.instance.saveStatus(
+                      item.id,
+                      name.text,
+                      color: selectedColor,
+                    );
+                  }
+                  AppFeedback.instance.success();
+                  if (dialogContext.mounted) Navigator.pop(dialogContext);
+                } catch (error) {
+                  if (dialogContext.mounted) showProblem(dialogContext, error);
                 }
-                AppFeedback.instance.success();
-                if (dialogContext.mounted) Navigator.pop(dialogContext);
-              } catch (error) {
-                if (dialogContext.mounted) showProblem(dialogContext, error);
-              }
-            },
-            child: const Text('Guardar'),
-          ),
-        ],
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        ),
       ),
     );
     name.dispose();
@@ -1177,17 +1248,16 @@ class StatusesPanel extends StatelessWidget {
               margin: const EdgeInsets.fromLTRB(20, 4, 20, 4),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: Theme.of(
+                  backgroundColor: statusColor(
                     context,
-                  ).colorScheme.primary.withValues(alpha: 0.10),
-                  foregroundColor: Theme.of(context).colorScheme.primary,
+                    statuses[index],
+                  ).withValues(alpha: 0.16),
+                  foregroundColor: statusColor(context, statuses[index]),
                   child: Text('${index + 1}'),
                 ),
                 title: Text(statuses[index].text('name')),
                 subtitle: Text(
-                  statuses[index].id == 'delivered'
-                      ? 'Entrega final: solo administrador'
-                      : 'Ponderación ${statuses[index].number('rank')}',
+                  '${statuses[index].id == 'delivered' ? 'Entrega final · ' : ''}Ponderación ${statuses[index].number('rank')}',
                 ),
                 trailing: Wrap(
                   children: [
@@ -1402,6 +1472,18 @@ class UsersPanel extends StatelessWidget {
   }
 }
 
+class _StatusDot extends StatelessWidget {
+  const _StatusDot({required this.color});
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 10,
+    height: 10,
+    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+  );
+}
+
 class OrdersPanel extends StatefulWidget {
   const OrdersPanel({
     required this.orders,
@@ -1470,6 +1552,10 @@ class _OrdersPanelState extends State<OrdersPanel> {
               (clientFilter.isEmpty || order.text('clientId') == clientFilter),
         )
         .toList();
+    final statusColors = {
+      for (final status in widget.statuses)
+        status.id: statusColor(context, status),
+    };
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1120),
@@ -1568,106 +1654,134 @@ class _OrdersPanelState extends State<OrdersPanel> {
             for (final order in visible)
               PolishedCard(
                 margin: const EdgeInsets.fromLTRB(20, 5, 20, 5),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Wrap(
-                        spacing: 14,
-                        runSpacing: 8,
-                        alignment: WrapAlignment.spaceBetween,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                order.text('clientName'),
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              Text(
-                                'Creado ${_date(order.date('createdAt'))} · '
-                                '${itemName(widget.users, order.text('assignedUid'))}',
-                              ),
-                            ],
-                          ),
-                          Text(
-                            money(order.number('totalCents')),
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                        ],
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      left: BorderSide(
+                        color:
+                            statusColors[order.text('statusId')] ??
+                            Theme.of(context).colorScheme.primary,
+                        width: 5,
                       ),
-                      const Divider(height: 24),
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 8,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          if (order.text('statusId') == 'delivered')
-                            const Chip(
-                              label: Text('Entregado'),
-                              avatar: Icon(Icons.check_circle_outline),
-                            )
-                          else
-                            DropdownButton<String>(
-                              value:
-                                  widget.statuses.any(
-                                    (s) => s.id == order.text('statusId'),
-                                  )
-                                  ? order.text('statusId')
-                                  : null,
-                              hint: const Text('Estado'),
-                              items: [
-                                for (final status in widget.statuses.where(
-                                  (s) => s.id != 'delivered',
-                                ))
-                                  DropdownMenuItem(
-                                    value: status.id,
-                                    child: Text(status.text('name')),
-                                  ),
-                              ],
-                              onChanged: (statusId) {
-                                if (statusId != null) {
-                                  saveAction(
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Wrap(
+                          spacing: 14,
+                          runSpacing: 8,
+                          alignment: WrapAlignment.spaceBetween,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  order.text('clientName'),
+                                  style: Theme.of(
                                     context,
-                                    () => Store.instance.setOrderStatus(
-                                      order.id,
-                                      statusId,
-                                    ),
-                                  );
-                                }
-                              },
+                                  ).textTheme.titleMedium,
+                                ),
+                                Text(
+                                  'Creado ${_date(order.date('createdAt'))} · '
+                                  '${itemName(widget.users, order.text('assignedUid'))}',
+                                ),
+                              ],
                             ),
-                          if (widget.admin &&
-                              order.text('statusId') != 'delivered')
-                            FilledButton.icon(
-                              onPressed: () => _confirmDelivery(order),
-                              icon: const Icon(Icons.verified_outlined),
-                              label: const Text('Confirmar entrega'),
-                            ),
-                          if (order.date('deliveredAt') != null)
                             Text(
-                              'Entregado ${_date(order.date('deliveredAt'))}',
+                              money(order.number('totalCents')),
+                              style: Theme.of(context).textTheme.titleLarge,
                             ),
-                        ],
-                      ),
-                      ExpansionTile(
-                        title: Text('${orderLines(order).length} productos'),
-                        tilePadding: EdgeInsets.zero,
-                        children: [
-                          for (final line in orderLines(order))
-                            ListTile(
-                              dense: true,
-                              title: Text('${line.quantity} × ${line.name}'),
-                              subtitle: Text(
-                                '${line.categoryName} · ${money(line.unitPriceCents)} c/u',
+                          ],
+                        ),
+                        const Divider(height: 24),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            if (order.text('statusId') == 'delivered')
+                              Chip(
+                                backgroundColor: statusColors['delivered']
+                                    ?.withValues(alpha: 0.16),
+                                label: const Text('Entregado'),
+                                avatar: Icon(
+                                  Icons.check_circle_outline,
+                                  color: statusColors['delivered'],
+                                ),
+                              )
+                            else
+                              DropdownButton<String>(
+                                value:
+                                    widget.statuses.any(
+                                      (s) => s.id == order.text('statusId'),
+                                    )
+                                    ? order.text('statusId')
+                                    : null,
+                                hint: const Text('Estado'),
+                                items: [
+                                  for (final status in widget.statuses.where(
+                                    (s) => s.id != 'delivered',
+                                  ))
+                                    DropdownMenuItem(
+                                      value: status.id,
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          _StatusDot(
+                                            color: statusColors[status.id]!,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(status.text('name')),
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                                onChanged: (statusId) {
+                                  if (statusId != null) {
+                                    saveAction(
+                                      context,
+                                      () => Store.instance.setOrderStatus(
+                                        order.id,
+                                        statusId,
+                                      ),
+                                    );
+                                  }
+                                },
                               ),
-                              trailing: Text(money(line.subtotalCents)),
-                            ),
-                        ],
-                      ),
-                    ],
+                            if (widget.admin &&
+                                order.text('statusId') != 'delivered')
+                              FilledButton.icon(
+                                onPressed: () => _confirmDelivery(order),
+                                icon: const Icon(Icons.verified_outlined),
+                                label: const Text('Confirmar entrega'),
+                              ),
+                            if (order.date('deliveredAt') != null)
+                              Text(
+                                'Entregado ${_date(order.date('deliveredAt'))}',
+                              ),
+                          ],
+                        ),
+                        ExpansionTile(
+                          title: Text('${orderLines(order).length} productos'),
+                          tilePadding: EdgeInsets.zero,
+                          children: [
+                            for (final line in orderLines(order))
+                              ListTile(
+                                dense: true,
+                                title: Text('${line.quantity} × ${line.name}'),
+                                subtitle: Text(
+                                  '${line.categoryName} · ${money(line.unitPriceCents)} c/u',
+                                ),
+                                trailing: Text(money(line.subtotalCents)),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

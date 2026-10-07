@@ -167,7 +167,16 @@ class Store {
       ('shipped', 'Enviado', 30),
       ('delivered', 'Entregado', 40),
     ]) {
-      batch.set(statuses.doc(entry.$1), {'name': entry.$2, 'rank': entry.$3});
+      batch.set(statuses.doc(entry.$1), {
+        'name': entry.$2,
+        'rank': entry.$3,
+        'color': switch (entry.$1) {
+          'pending' => 0xFFFFB547,
+          'preparing' => 0xFF4C8DFF,
+          'shipped' => 0xFF9B7BFF,
+          _ => 0xFF36C98F,
+        },
+      });
     }
     await batch.commit();
   }
@@ -244,10 +253,10 @@ class Store {
     }
   }
 
-  Future<void> saveStatus(String id, String name) =>
-      statuses.doc(id).update({'name': name.trim()});
-  Future<void> addStatus(String name, int rank) async {
-    await statuses.add({'name': name.trim(), 'rank': rank});
+  Future<void> saveStatus(String id, String name, {required int color}) =>
+      statuses.doc(id).update({'name': name.trim(), 'color': color});
+  Future<void> addStatus(String name, int rank, {required int color}) async {
+    await statuses.add({'name': name.trim(), 'rank': rank, 'color': color});
   }
 
   Future<void> swapStatusRank(Item first, Item second) async {
