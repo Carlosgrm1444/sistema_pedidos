@@ -50,42 +50,47 @@ Widget panelHeader(String title, String subtitle, {Widget? action}) => Builder(
     return MotionReveal(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 28, 24, 18),
-        child: Wrap(
-          spacing: 18,
-          runSpacing: 15,
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'ESPACIO DE TRABAJO',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    letterSpacing: 1.8,
-                    fontWeight: FontWeight.w800,
-                  ),
+        child: LayoutBuilder(
+          builder: (context, constraints) => Wrap(
+            spacing: 18,
+            runSpacing: 15,
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: constraints.maxWidth),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'ESPACIO DE TRABAJO',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                        letterSpacing: 1.8,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      title,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.7,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 7),
-                Text(
-                  title,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.7,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-            ?action,
-          ],
+              ),
+              ?action,
+            ],
+          ),
         ),
       ),
     );
@@ -362,6 +367,7 @@ class _OverviewPanelState extends State<OverviewPanel> {
                               width: double.infinity,
                               height: 142,
                               child: CustomPaint(
+                                key: const ValueKey('orders-trend-chart'),
                                 painter: _TrendPainter(
                                   values: trend,
                                   color: Theme.of(context).colorScheme.primary,
@@ -373,14 +379,27 @@ class _OverviewPanelState extends State<OverviewPanel> {
                             ),
                             const SizedBox(height: 6),
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: List.generate(
                                 7,
-                                (index) => Text(
-                                  _dayLabel(
-                                    today.subtract(Duration(days: 6 - index)),
+                                (index) => Expanded(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: index == 0
+                                        ? Alignment.centerLeft
+                                        : index == 6
+                                        ? Alignment.centerRight
+                                        : Alignment.center,
+                                    child: Text(
+                                      _dayLabel(
+                                        today.subtract(
+                                          Duration(days: 6 - index),
+                                        ),
+                                      ),
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.labelSmall,
+                                    ),
                                   ),
-                                  style: Theme.of(context).textTheme.labelSmall,
                                 ),
                               ),
                             ),

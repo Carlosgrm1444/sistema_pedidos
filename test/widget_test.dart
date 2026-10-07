@@ -95,6 +95,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
 
+    tester.view.physicalSize = const Size(320, 1200);
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -111,7 +112,12 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
+    expect(
+      tester.getSize(find.byKey(const ValueKey('orders-trend-chart'))).width,
+      greaterThan(200),
+    );
 
+    tester.view.physicalSize = const Size(320, 568);
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
