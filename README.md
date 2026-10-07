@@ -78,8 +78,28 @@ request en GitHub.
 
 ## Ejecutar y comprobar el proyecto
 
+Para ejecutarlo en Chrome (web), usa explícitamente el dispositivo `chrome`:
+
 ```bash
-flutter run
+flutter pub get
+flutter run -d chrome
+```
+
+No uses únicamente `flutter run` si tienes un teléfono conectado, porque
+Flutter puede seleccionar Android de forma automática. Para comprobar los
+destinos disponibles ejecuta `flutter devices`.
+
+Para generar una versión web estática:
+
+```bash
+flutter build web
+```
+
+Los archivos resultantes se crean en `build/web`.
+
+Comandos generales de verificación:
+
+```bash
 flutter analyze
 flutter test
 ```
