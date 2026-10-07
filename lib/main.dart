@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // <-- IMPORTANTE PARA RESTRINGIR SOLO NÚMEROS
 
 void main() {
   runApp(const MyApp());
 }
 
 // Base de datos simulada en memoria para probar el registro y el login.
-// En un proyecto real, esto se conectaría a Firebase o una API.
 final Map<String, Map<String, String>> mockDatabase = {
   'admin@sqlbros.com': {
     'nombre': 'Memo',
@@ -22,11 +22,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Portal de Oficina',
       theme: ThemeData(
-        // Tema estilo oficina: Colores neutros, azules y grises
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1E3A8A), // Azul corporativo
-          surface:
-              Colors.grey[200], // Fondo gris claro para resaltar la tarjeta
+          seedColor: const Color(0xFF1E3A8A),
+          surface: Colors.grey[200],
         ),
         useMaterial3: true,
       ),
@@ -60,10 +58,8 @@ class _LoginPageState extends State<LoginPage> {
       final email = _emailCtrl.text;
       final password = _passwordCtrl.text;
 
-      // Validación contra nuestra base de datos simulada
       if (mockDatabase.containsKey(email)) {
         if (mockDatabase[email]!['password'] == password) {
-          // Login exitoso
           final nombre = mockDatabase[email]!['nombre']!;
           final apellidos = mockDatabase[email]!['apellidos']!;
 
@@ -88,13 +84,19 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   @override
+  void dispose() {
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: ConstrainedBox(
-            // Restringe el ancho máximo para dar el efecto de formulario centrado
             constraints: const BoxConstraints(maxWidth: 400),
             child: Card(
               elevation: 8,
@@ -122,8 +124,6 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 32),
-
-                      // Campo de Correo
                       TextFormField(
                         controller: _emailCtrl,
                         decoration: const InputDecoration(
@@ -132,16 +132,10 @@ class _LoginPageState extends State<LoginPage> {
                           prefixIcon: Icon(Icons.email),
                         ),
                         keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor ingrese su correo';
-                          }
-                          return null;
-                        },
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Requerido' : null,
                       ),
                       const SizedBox(height: 16),
-
-                      // Campo de Contraseña
                       TextFormField(
                         controller: _passwordCtrl,
                         decoration: const InputDecoration(
@@ -150,15 +144,9 @@ class _LoginPageState extends State<LoginPage> {
                           prefixIcon: Icon(Icons.lock),
                         ),
                         obscureText: true,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor ingrese su contraseña';
-                          }
-                          return null;
-                        },
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Requerido' : null,
                       ),
-
-                      // Mensaje de Error
                       if (_errorMessage != null) ...[
                         const SizedBox(height: 16),
                         Text(
@@ -169,10 +157,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ],
-
                       const SizedBox(height: 24),
-
-                      // Botón de Iniciar Sesión
                       ElevatedButton(
                         onPressed: _login,
                         style: ElevatedButton.styleFrom(
@@ -183,8 +168,6 @@ class _LoginPageState extends State<LoginPage> {
                         child: const Text('Iniciar Sesión'),
                       ),
                       const SizedBox(height: 16),
-
-                      // Enlace a Registro
                       TextButton(
                         onPressed: () {
                           Navigator.push(
@@ -227,36 +210,26 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
 
-  // La función _register CORRECTA se coloca aquí, dentro de _RegisterPageState
   void _register() {
     if (_formKey.currentState!.validate()) {
-      // Guardar en la base de datos simulada
       mockDatabase[_emailCtrl.text] = {
         'nombre': _nombreCtrl.text,
         'apellidos': _apellidosCtrl.text,
         'password': _passwordCtrl.text,
       };
 
-      // ==========================================
-      // NOTIFICACIÓN ESTILO REDES SOCIALES
-      // ==========================================
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          behavior: SnackBarBehavior.floating, // Hace que la notificación flote
-          backgroundColor: Colors.white, // Fondo de la tarjeta
-          elevation: 8, // Sombra para dar profundidad
-          margin: const EdgeInsets.all(
-            16,
-          ), // Separación de los bordes de la pantalla
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.white,
+          elevation: 8,
+          margin: const EdgeInsets.all(16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16), // Bordes redondeados
+            borderRadius: BorderRadius.circular(16),
           ),
-          duration: const Duration(
-            seconds: 4,
-          ), // Tiempo que permanece en pantalla
+          duration: const Duration(seconds: 4),
           content: Row(
             children: [
-              // Icono circular (simulando un avatar o badge de verificación)
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -270,13 +243,11 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
               const SizedBox(width: 16),
-
-              // Textos de la notificación
-              Expanded(
+              const Expanded(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
                       '¡Registro completado!',
                       style: TextStyle(
@@ -297,10 +268,17 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
         ),
       );
-
-      // Regresar al Login
       Navigator.pop(context);
     }
+  }
+
+  @override
+  void dispose() {
+    _nombreCtrl.dispose();
+    _apellidosCtrl.dispose();
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -336,8 +314,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       ),
                       const SizedBox(height: 24),
-
-                      // Nombre y Apellidos (En fila si hay espacio)
                       Row(
                         children: [
                           Expanded(
@@ -366,8 +342,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         ],
                       ),
                       const SizedBox(height: 16),
-
-                      // Campo de Correo
                       TextFormField(
                         controller: _emailCtrl,
                         decoration: const InputDecoration(
@@ -387,8 +361,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         },
                       ),
                       const SizedBox(height: 16),
-
-                      // Campo de Contraseña
                       TextFormField(
                         controller: _passwordCtrl,
                         decoration: const InputDecoration(
@@ -401,8 +373,6 @@ class _RegisterPageState extends State<RegisterPage> {
                             value!.isEmpty ? 'Requerido' : null,
                       ),
                       const SizedBox(height: 16),
-
-                      // Campo de Confirmar Contraseña
                       TextFormField(
                         decoration: const InputDecoration(
                           labelText: 'Confirmar Contraseña',
@@ -421,8 +391,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         },
                       ),
                       const SizedBox(height: 32),
-
-                      // Botón de Registrarse
                       ElevatedButton(
                         onPressed: _register,
                         style: ElevatedButton.styleFrom(
@@ -458,29 +426,177 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Controladores para capturar la información
+  // NUEVA LLAVE PARA VALIDAR EL FORMULARIO DE PRODUCTOS
+  final _formKeyPedido = GlobalKey<FormState>();
+
   final TextEditingController _productoCtrl = TextEditingController();
+  final TextEditingController _empresaCtrl = TextEditingController();
   final TextEditingController _precioCtrl = TextEditingController();
   final TextEditingController _cantidadCtrl = TextEditingController();
 
-  // Memoria temporal para registrar los productos del pedido
-  final List<Map<String, dynamic>> _pedido = [];
+  final List<String> _categorias = ['Consumibles', 'Industriales', 'Negocios'];
+  String _categoriaSeleccionada = 'Consumibles';
 
-  void _agregarProducto() {
-    if (_productoCtrl.text.isNotEmpty && _precioCtrl.text.isNotEmpty) {
+  final List<Map<String, dynamic>> _pedido = [];
+  final List<Map<String, dynamic>> _historialPedidos = [];
+
+  int? _indiceEdicion;
+
+  String _formatearMoneda(double monto) {
+    String s = monto.toStringAsFixed(2);
+    List<String> partes = s.split('.');
+    RegExp re = RegExp(r'\B(?=(\d{3})+(?!\d))');
+    partes[0] = partes[0].replaceAll(re, ',');
+    return partes.join('.');
+  }
+
+  IconData _obtenerIconoCategoria(String categoria) {
+    switch (categoria) {
+      case 'Consumibles':
+        return Icons.shopping_cart;
+      case 'Industriales':
+        return Icons.settings;
+      case 'Negocios':
+        return Icons.storefront;
+      default:
+        return Icons.category;
+    }
+  }
+
+  void _guardarProducto() {
+    // AHORA VALIDAMOS EL FORMULARIO ANTES DE GUARDAR
+    if (_formKeyPedido.currentState!.validate()) {
       setState(() {
-        _pedido.add({
+        final nuevoItem = {
           'nombre': _productoCtrl.text,
-          'precio': double.tryParse(_precioCtrl.text) ?? 0.0,
-          'cantidad': int.tryParse(_cantidadCtrl.text) ?? 1,
-        });
+          'empresa': _empresaCtrl.text,
+          'precio': double.parse(_precioCtrl.text),
+          'cantidad': int.parse(_cantidadCtrl.text),
+          'categoria': _categoriaSeleccionada,
+        };
+
+        if (_indiceEdicion != null) {
+          _pedido[_indiceEdicion!] = nuevoItem;
+          _indiceEdicion = null;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Se actualizó correctamente'),
+              backgroundColor: Colors.blue,
+            ),
+          );
+        } else {
+          _pedido.add(nuevoItem);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Producto agregado correctamente'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       });
 
-      // Limpiar campos tras registrar
       _productoCtrl.clear();
+      _empresaCtrl.clear();
       _precioCtrl.clear();
       _cantidadCtrl.clear();
+      setState(() => _categoriaSeleccionada = 'Consumibles');
     }
+  }
+
+  void _cargarParaEdicion(int index) {
+    setState(() {
+      _indiceEdicion = index;
+      final item = _pedido[index];
+      _productoCtrl.text = item['nombre'];
+      _empresaCtrl.text = item['empresa'];
+      _precioCtrl.text = item['precio'].toString();
+      _cantidadCtrl.text = item['cantidad'].toString();
+      _categoriaSeleccionada = item['categoria'] ?? 'Consumibles';
+    });
+  }
+
+  void _eliminarProducto(int index) {
+    setState(() {
+      _pedido.removeAt(index);
+      if (_indiceEdicion == index) {
+        _indiceEdicion = null;
+        _productoCtrl.clear();
+        _empresaCtrl.clear();
+        _precioCtrl.clear();
+        _cantidadCtrl.clear();
+        _categoriaSeleccionada = 'Consumibles';
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Se eliminó correctamente'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  void _confirmarEliminacion(int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: const Text('Confirmar eliminación'),
+          content: const Text(
+            '¿Estás seguro de que deseas eliminar este producto?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _eliminarProducto(index);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Eliminar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _finalizarPedido() {
+    final double totalActual = _totalPedido;
+    final String totalFinal = _formatearMoneda(totalActual);
+    final fechaActual = DateTime.now();
+    final String fechaFormateada =
+        "${fechaActual.day.toString().padLeft(2, '0')}/${fechaActual.month.toString().padLeft(2, '0')}/${fechaActual.year}";
+
+    setState(() {
+      _historialPedidos.insert(0, {
+        'fecha': fechaFormateada,
+        'total': totalActual,
+        'estado': 'En espera',
+        'productos': List<Map<String, dynamic>>.from(
+          _pedido,
+        ), // Corrección del error de lista dinámica
+      });
+
+      _pedido.clear();
+      _indiceEdicion = null;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Pedido procesado exitosamente por \$$totalFinal'),
+        backgroundColor: Colors.green[800],
+      ),
+    );
   }
 
   double get _totalPedido {
@@ -494,6 +610,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _productoCtrl.dispose();
+    _empresaCtrl.dispose();
     _precioCtrl.dispose();
     _cantidadCtrl.dispose();
     super.dispose();
@@ -507,7 +624,23 @@ class _HomePageState extends State<HomePage> {
         title: Text('Sistema de Pedidos - ${widget.nombre}'),
         backgroundColor: const Color(0xFF1E3A8A),
         foregroundColor: Colors.white,
+        centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.history_edu),
+            tooltip: 'Ver pedidos procesados',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HistorialPedidosPage(
+                    historial: _historialPedidos,
+                    formatearMoneda: _formatearMoneda,
+                  ),
+                ),
+              ).then((_) => setState(() {}));
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Cerrar sesión',
@@ -520,154 +653,437 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Captura de datos
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ==========================================
+                // FORMULARIO DE CAPTURA DE PRODUCTOS
+                // ==========================================
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Form(
+                      // ENVOLVEMOS LOS CAMPOS EN UN FORM
+                      key: _formKeyPedido,
+                      child: Column(
+                        children: [
+                          Text(
+                            _indiceEdicion == null
+                                ? 'Registrar Producto'
+                                : 'Editar Producto',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E3A8A),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _productoCtrl,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Producto',
+                                    prefixIcon: Icon(
+                                      Icons.shopping_bag_outlined,
+                                    ),
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  validator: (value) =>
+                                      value == null || value.trim().isEmpty
+                                      ? 'Requerido'
+                                      : null,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _empresaCtrl,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Empresa',
+                                    prefixIcon: Icon(Icons.business),
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  validator: (value) =>
+                                      value == null || value.trim().isEmpty
+                                      ? 'Requerido'
+                                      : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<String>(
+                            key: ValueKey(_categoriaSeleccionada),
+                            initialValue: _categoriaSeleccionada,
+                            decoration: const InputDecoration(
+                              labelText: 'Categoría',
+                              prefixIcon: Icon(Icons.category),
+                              border: OutlineInputBorder(),
+                            ),
+                            items: _categorias
+                                .map(
+                                  (String categoria) =>
+                                      DropdownMenuItem<String>(
+                                        value: categoria,
+                                        child: Text(categoria),
+                                      ),
+                                )
+                                .toList(),
+                            onChanged: (String? nuevaCategoria) {
+                              if (nuevaCategoria != null) {
+                                setState(
+                                  () => _categoriaSeleccionada = nuevaCategoria,
+                                );
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _precioCtrl,
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                        decimal: true,
+                                      ),
+                                  // BLOQUEA CARACTERES QUE NO SEAN NÚMEROS O PUNTOS
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(
+                                      RegExp(r'^\d*\.?\d*'),
+                                    ),
+                                  ],
+                                  decoration: const InputDecoration(
+                                    labelText: 'Precio (\$)',
+                                    prefixIcon: Icon(Icons.attach_money),
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Requerido';
+                                    }
+                                    if (double.tryParse(value) == null) {
+                                      return 'Inválido';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _cantidadCtrl,
+                                  keyboardType: TextInputType.number,
+                                  // BLOQUEA PUNTOS Y LETRAS, SOLO ENTEROS
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
+                                  decoration: const InputDecoration(
+                                    labelText: 'Cantidad',
+                                    prefixIcon: Icon(Icons.numbers),
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Requerido';
+                                    }
+                                    if (int.tryParse(value) == null ||
+                                        int.parse(value) <= 0) {
+                                      return 'Mínimo 1';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: _guardarProducto,
+                            icon: Icon(
+                              _indiceEdicion == null
+                                  ? Icons.add_shopping_cart
+                                  : Icons.save,
+                            ),
+                            label: Text(
+                              _indiceEdicion == null
+                                  ? 'Agregar al Pedido'
+                                  : 'Actualizar Producto',
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size(double.infinity, 45),
+                              backgroundColor: _indiceEdicion == null
+                                  ? const Color(0xFF1E3A8A)
+                                  : Colors.orange[800],
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // ==========================================
+                // LISTA DEL PEDIDO ACTUAL
+                // ==========================================
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Registrar Producto',
+                      'Detalle del Pedido',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E3A8A),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _productoCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre del producto',
-                        prefixIcon: Icon(Icons.shopping_bag_outlined),
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _precioCtrl,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'Precio (\$)',
-                              prefixIcon: Icon(Icons.attach_money),
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: TextField(
-                            controller: _cantidadCtrl,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'Cantidad',
-                              prefixIcon: Icon(Icons.numbers),
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: _agregarProducto,
-                      icon: const Icon(Icons.add_shopping_cart),
-                      label: const Text('Agregar al Pedido'),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 45),
-                        backgroundColor: const Color(0xFF1E3A8A),
-                        foregroundColor: Colors.white,
+                    Text(
+                      'Total: \$${_formatearMoneda(_totalPedido)}',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
                       ),
                     ),
                   ],
                 ),
-              ),
-            ),
-            const SizedBox(height: 20),
+                const SizedBox(height: 10),
 
-            // Visualización de la información capturada
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Detalle del Pedido',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  'Total: \$${_totalPedido.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
+                Expanded(
+                  child: _pedido.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'No hay productos en el pedido.\nAgrega uno arriba.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey, fontSize: 16),
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: _pedido.length,
+                          itemBuilder: (context, index) {
+                            final item = _pedido[index];
+                            final double subtotal =
+                                item['precio'] * item['cantidad'];
+
+                            return Card(
+                              margin: const EdgeInsets.symmetric(vertical: 6),
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: const Color(
+                                    0xFF1E3A8A,
+                                  ).withValues(alpha: 0.1),
+                                  child: Icon(
+                                    _obtenerIconoCategoria(
+                                      item['categoria'] ?? '',
+                                    ),
+                                    color: const Color(0xFF1E3A8A),
+                                  ),
+                                ),
+                                title: Text(
+                                  '${item['cantidad']}x ${item['nombre']}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  'Empresa: ${item['empresa']}\nCategoría: ${item['categoria']} | Precio: \$${_formatearMoneda(item['precio'])}',
+                                ),
+                                isThreeLine: true,
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '\$${_formatearMoneda(subtotal)}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        color: Colors.blue,
+                                      ),
+                                      tooltip: 'Editar',
+                                      onPressed: () =>
+                                          _cargarParaEdicion(index),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        color: Colors.red,
+                                      ),
+                                      tooltip: 'Eliminar',
+                                      onPressed: () =>
+                                          _confirmarEliminacion(index),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+          ),
+        ),
+      ),
+      floatingActionButton: _pedido.isNotEmpty
+          ? FloatingActionButton.extended(
+              onPressed: _finalizarPedido,
+              backgroundColor: Colors.green,
+              icon: const Icon(Icons.check, color: Colors.white),
+              label: const Text(
+                'Finalizar Pedido',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )
+          : null,
+    );
+  }
+}
 
-            Expanded(
-              child: _pedido.isEmpty
-                  ? const Center(
-                      child: Text(
-                        'No hay productos en el pedido.',
-                        style: TextStyle(color: Colors.grey),
+// ==========================================
+// NUEVA PANTALLA: HISTORIAL Y ESTADO DE PEDIDOS
+// ==========================================
+class HistorialPedidosPage extends StatefulWidget {
+  final List<Map<String, dynamic>> historial;
+  final Function(double) formatearMoneda;
+
+  const HistorialPedidosPage({
+    super.key,
+    required this.historial,
+    required this.formatearMoneda,
+  });
+
+  @override
+  State<HistorialPedidosPage> createState() => _HistorialPedidosPageState();
+}
+
+class _HistorialPedidosPageState extends State<HistorialPedidosPage> {
+  Color _getColorEstado(String estado) {
+    if (estado == 'En espera') return Colors.red;
+    if (estado == 'Enviado') return Colors.blue;
+    if (estado == 'Pagado') return Colors.green;
+    return Colors.grey;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        title: const Text('Pedidos Procesados'),
+        backgroundColor: const Color(0xFF1E3A8A),
+        foregroundColor: Colors.white,
+      ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: widget.historial.isEmpty
+              ? const Center(
+                  child: Text(
+                    'No hay pedidos procesados.',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16.0),
+                  itemCount: widget.historial.length,
+                  itemBuilder: (context, index) {
+                    final pedido = widget.historial[index];
+                    // Conversión segura requerida para evitar errores
+                    final productos = List<Map<String, dynamic>>.from(
+                      pedido['productos'],
+                    );
+                    final colorEstado = _getColorEstado(pedido['estado']);
+
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: colorEstado, width: 2),
                       ),
-                    )
-                  : ListView.builder(
-                      itemCount: _pedido.length,
-                      itemBuilder: (context, index) {
-                        final item = _pedido[index];
-                        final double subtotal =
-                            item['precio'] * item['cantidad'];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 6),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: const Color(
-                                0xFF1E3A8A,
-                              ).withValues(alpha: 0.1),
-                              child: Text(
-                                '${item['cantidad']}x',
-                                style: const TextStyle(
-                                  color: Color(0xFF1E3A8A),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                      child: ExpansionTile(
+                        leading: CircleAvatar(
+                          backgroundColor: colorEstado.withValues(alpha: 0.2),
+                          child: Icon(Icons.receipt_long, color: colorEstado),
+                        ),
+                        title: Text(
+                          'Pedido del ${pedido['fecha']}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: DropdownButton<String>(
+                            value: pedido['estado'],
+                            isDense: true,
+                            dropdownColor: Colors.white,
+                            style: TextStyle(
+                              color: colorEstado,
+                              fontWeight: FontWeight.bold,
                             ),
+                            items: <String>['En espera', 'Enviado', 'Pagado']
+                                .map((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(value),
+                                  );
+                                })
+                                .toList(),
+                            onChanged: (String? nuevoEstado) {
+                              if (nuevoEstado != null) {
+                                setState(() {
+                                  pedido['estado'] = nuevoEstado;
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                        trailing: Text(
+                          '\$${widget.formatearMoneda(pedido['total'])}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        children: productos.map((prod) {
+                          final subtotal = prod['precio'] * prod['cantidad'];
+                          return ListTile(
                             title: Text(
-                              item['nombre'],
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              '${prod['cantidad']}x ${prod['nombre']}',
                             ),
                             subtitle: Text(
-                              'Precio unitario: \$${item['precio']}',
+                              'Empresa: ${prod['empresa']} | Cat: ${prod['categoria']}',
                             ),
                             trailing: Text(
-                              '\$${subtotal.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
+                              '\$${widget.formatearMoneda(subtotal)}',
+                              style: const TextStyle(color: Colors.grey),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ],
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
+                ),
         ),
       ),
     );
