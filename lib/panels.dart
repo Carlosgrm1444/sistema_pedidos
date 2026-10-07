@@ -148,6 +148,30 @@ class _OverviewPanelState extends State<OverviewPanel> {
     final bestProducts = counts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     final maxProduct = bestProducts.isEmpty ? 1 : bestProducts.first.value;
+    final units = counts.values.fold<int>(0, (sum, value) => sum + value);
+    final average = visible.isEmpty ? 0 : (total / visible.length).round();
+    final deliveryRate = visible.isEmpty ? 0.0 : delivered / visible.length;
+    final activeClients = visible.map((order) => order.text('clientId')).toSet()
+      ..remove('');
+    final trend = List<int>.filled(7, 0);
+    final today = DateTime.now();
+    for (final order in visible) {
+      final created = order.date('createdAt');
+      if (created == null) continue;
+      final age = DateTime(
+        today.year,
+        today.month,
+        today.day,
+      ).difference(DateTime(created.year, created.month, created.day)).inDays;
+      if (age >= 0 && age < trend.length) trend[trend.length - age - 1]++;
+    }
+    final recent = [...visible]
+      ..sort(
+        (a, b) => (b.date('createdAt') ?? DateTime(1970)).compareTo(
+          a.date('createdAt') ?? DateTime(1970),
+        ),
+      );
+    final narrow = MediaQuery.sizeOf(context).width < 700;
 
     return Center(
       child: ConstrainedBox(
@@ -251,6 +275,30 @@ class _OverviewPanelState extends State<OverviewPanel> {
                     money(total),
                     Icons.payments_outlined,
                   ),
+                  _metric(
+                    context,
+                    'Promedio por pedido',
+                    money(average),
+                    Icons.stacked_line_chart_rounded,
+                  ),
+                  _metric(
+                    context,
+                    'Tasa de entrega',
+                    '${(deliveryRate * 100).round()}%',
+                    Icons.speed_rounded,
+                  ),
+                  _metric(
+                    context,
+                    'Clientes activos',
+                    '${activeClients.length}',
+                    Icons.groups_outlined,
+                  ),
+                  _metric(
+                    context,
+                    'Unidades solicitadas',
+                    '$units',
+                    Icons.inventory_2_outlined,
+                  ),
                 ],
               ),
             ),
@@ -261,7 +309,124 @@ class _OverviewPanelState extends State<OverviewPanel> {
                 runSpacing: 14,
                 children: [
                   SizedBox(
-                    width: 430,
+                    width: narrow ? double.infinity : 560,
+                    child: PolishedCard(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Actividad de los últimos 7 días',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${visible.length} pedidos en el periodo seleccionado',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                            const SizedBox(height: 18),
+                            SizedBox(
+                              height: 142,
+                              child: CustomPaint(
+                                painter: _TrendPainter(
+                                  values: trend,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  gridColor: Theme.of(
+                                    context,
+                                  ).colorScheme.outlineVariant,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: List.generate(
+                                7,
+                                (index) => Text(
+                                  _dayLabel(
+                                    today.subtract(Duration(days: 6 - index)),
+                                  ),
+                                  style: Theme.of(context).textTheme.labelSmall,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: narrow ? double.infinity : 330,
+                    child: PolishedCard(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Salud del flujo',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 18),
+                            Row(
+                              children: [
+                                SizedBox(
+                                  width: 92,
+                                  height: 92,
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      CircularProgressIndicator(
+                                        value: deliveryRate,
+                                        strokeWidth: 10,
+                                        backgroundColor: Theme.of(
+                                          context,
+                                        ).colorScheme.outlineVariant,
+                                      ),
+                                      Text(
+                                        '${(deliveryRate * 100).round()}%',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 18),
+                                Expanded(
+                                  child: Text(
+                                    delivered == 0
+                                        ? 'Aún no hay pedidos entregados.'
+                                        : '$delivered pedidos completados correctamente.',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Wrap(
+                spacing: 14,
+                runSpacing: 14,
+                children: [
+                  SizedBox(
+                    width: narrow ? double.infinity : 430,
                     child: PolishedCard(
                       child: Padding(
                         padding: const EdgeInsets.all(20),
@@ -311,7 +476,7 @@ class _OverviewPanelState extends State<OverviewPanel> {
                     ),
                   ),
                   SizedBox(
-                    width: 430,
+                    width: narrow ? double.infinity : 430,
                     child: PolishedCard(
                       child: Padding(
                         padding: const EdgeInsets.all(20),
@@ -352,6 +517,49 @@ class _OverviewPanelState extends State<OverviewPanel> {
                     ),
                   ),
                 ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+              child: PolishedCard(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Actividad reciente',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 10),
+                      if (recent.isEmpty)
+                        const Text('Los pedidos recientes aparecerán aquí.'),
+                      for (final order in recent.take(4))
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: CircleAvatar(
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.12),
+                            child: Icon(
+                              Icons.receipt_long_rounded,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                          title: Text(
+                            itemName(widget.clients, order.text('clientId')),
+                          ),
+                          subtitle: Text(
+                            '${itemName(widget.statuses, order.text('statusId'))} · ${orderLines(order).length} productos',
+                          ),
+                          trailing: Text(
+                            money(order.number('totalCents')),
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 28),
@@ -409,6 +617,72 @@ class _OverviewPanelState extends State<OverviewPanel> {
       ),
     ),
   );
+}
+
+String _dayLabel(DateTime date) => '${date.day}/${date.month}';
+
+class _TrendPainter extends CustomPainter {
+  const _TrendPainter({
+    required this.values,
+    required this.color,
+    required this.gridColor,
+  });
+  final List<int> values;
+  final Color color;
+  final Color gridColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final grid = Paint()
+      ..color = gridColor.withValues(alpha: 0.55)
+      ..strokeWidth = 1;
+    for (var row = 1; row < 4; row++) {
+      final y = size.height * row / 4;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
+    }
+    if (values.isEmpty) return;
+    final maxValue = values.fold<int>(
+      0,
+      (max, value) => value > max ? value : max,
+    );
+    final max = maxValue == 0 ? 1 : maxValue;
+    final points = <Offset>[];
+    for (var index = 0; index < values.length; index++) {
+      final x = values.length == 1
+          ? size.width / 2
+          : size.width * index / (values.length - 1);
+      final y = size.height - (values[index] / max) * (size.height - 14) - 7;
+      points.add(Offset(x, y));
+    }
+    final area = Path()..moveTo(points.first.dx, size.height);
+    for (final point in points) {
+      area.lineTo(point.dx, point.dy);
+    }
+    area.lineTo(points.last.dx, size.height);
+    area.close();
+    canvas.drawPath(area, Paint()..color = color.withValues(alpha: 0.12));
+    final line = Paint()
+      ..color = color
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final chartLine = Path()..moveTo(points.first.dx, points.first.dy);
+    for (final point in points.skip(1)) {
+      chartLine.lineTo(point.dx, point.dy);
+    }
+    canvas.drawPath(chartLine, line);
+    final dot = Paint()..color = color;
+    for (final point in points) {
+      canvas.drawCircle(point, 4, dot);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _TrendPainter oldDelegate) =>
+      oldDelegate.values != values ||
+      oldDelegate.color != color ||
+      oldDelegate.gridColor != gridColor;
 }
 
 class CategoriesPanel extends StatelessWidget {
