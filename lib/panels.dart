@@ -259,59 +259,74 @@ class _OverviewPanelState extends State<OverviewPanel> {
               ),
             Padding(
               padding: const EdgeInsets.all(20),
-              child: Wrap(
-                spacing: 14,
-                runSpacing: 14,
-                children: [
-                  _metric(
-                    context,
-                    'Pedidos',
-                    '${visible.length}',
-                    Icons.receipt_long_outlined,
-                  ),
-                  _metric(
-                    context,
-                    'Entregados',
-                    '$delivered',
-                    Icons.check_circle_outline,
-                  ),
-                  _metric(
-                    context,
-                    'Pendientes',
-                    '${visible.length - delivered}',
-                    Icons.schedule,
-                  ),
-                  _metric(
-                    context,
-                    'Importe total',
-                    money(total),
-                    Icons.payments_outlined,
-                  ),
-                  _metric(
-                    context,
-                    'Promedio por pedido',
-                    money(average),
-                    Icons.stacked_line_chart_rounded,
-                  ),
-                  _metric(
-                    context,
-                    'Tasa de entrega',
-                    '${(deliveryRate * 100).round()}%',
-                    Icons.speed_rounded,
-                  ),
-                  _metric(
-                    context,
-                    'Clientes activos',
-                    '${activeClients.length}',
-                    Icons.groups_outlined,
-                  ),
-                  _metric(
-                    context,
-                    'Unidades solicitadas',
-                    '$units',
-                    Icons.inventory_2_outlined,
-                  ),
-                ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final metricWidth = constraints.maxWidth < 700
+                      ? (constraints.maxWidth - 14) / 2
+                      : 208.0;
+                  return Wrap(
+                    spacing: 14,
+                    runSpacing: 14,
+                    children: [
+                      _metric(
+                        context,
+                        'Pedidos',
+                        '${visible.length}',
+                        Icons.receipt_long_outlined,
+                        width: metricWidth,
+                      ),
+                      _metric(
+                        context,
+                        'Entregados',
+                        '$delivered',
+                        Icons.check_circle_outline,
+                        width: metricWidth,
+                      ),
+                      _metric(
+                        context,
+                        'Pendientes',
+                        '${visible.length - delivered}',
+                        Icons.schedule,
+                        width: metricWidth,
+                      ),
+                      _metric(
+                        context,
+                        'Importe total',
+                        money(total),
+                        Icons.payments_outlined,
+                        width: metricWidth,
+                      ),
+                      _metric(
+                        context,
+                        'Promedio por pedido',
+                        money(average),
+                        Icons.stacked_line_chart_rounded,
+                        width: metricWidth,
+                      ),
+                      _metric(
+                        context,
+                        'Tasa de entrega',
+                        '${(deliveryRate * 100).round()}%',
+                        Icons.speed_rounded,
+                        width: metricWidth,
+                      ),
+                      _metric(
+                        context,
+                        'Clientes activos',
+                        '${activeClients.length}',
+                        Icons.groups_outlined,
+                        width: metricWidth,
+                      ),
+                      _metric(
+                        context,
+                        'Unidades solicitadas',
+                        '$units',
+                        Icons.inventory_2_outlined,
+                        width: metricWidth,
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
             Padding(
@@ -375,6 +390,7 @@ class _OverviewPanelState extends State<OverviewPanel> {
                   ),
                   SizedBox(
                     width: narrow ? double.infinity : 330,
+                    height: narrow ? null : 244,
                     child: PolishedCard(
                       child: Padding(
                         padding: const EdgeInsets.all(20),
@@ -439,6 +455,7 @@ class _OverviewPanelState extends State<OverviewPanel> {
                 children: [
                   SizedBox(
                     width: narrow ? double.infinity : 430,
+                    height: narrow ? null : 252,
                     child: PolishedCard(
                       child: Padding(
                         padding: const EdgeInsets.all(20),
@@ -489,6 +506,7 @@ class _OverviewPanelState extends State<OverviewPanel> {
                   ),
                   SizedBox(
                     width: narrow ? double.infinity : 430,
+                    height: narrow ? null : 252,
                     child: PolishedCard(
                       child: Padding(
                         padding: const EdgeInsets.all(20),
@@ -585,25 +603,30 @@ class _OverviewPanelState extends State<OverviewPanel> {
     BuildContext context,
     String label,
     String value,
-    IconData icon,
-  ) => SizedBox(
-    width: 225,
+    IconData icon, {
+    required double width,
+  }) => SizedBox(
+    width: width,
     child: PolishedCard(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(width < 180 ? 13 : 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: width < 180 ? 32 : 36,
+              height: width < 180 ? 32 : 36,
               decoration: BoxDecoration(
                 color: Theme.of(
                   context,
                 ).colorScheme.primary.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: Theme.of(context).colorScheme.primary),
+              child: Icon(
+                icon,
+                size: width < 180 ? 18 : 20,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
             const SizedBox(height: 14),
             AnimatedSwitcher(
@@ -611,10 +634,14 @@ class _OverviewPanelState extends State<OverviewPanel> {
               child: Text(
                 value,
                 key: ValueKey(value),
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.6,
-                ),
+                style:
+                    (width < 180
+                            ? Theme.of(context).textTheme.titleLarge
+                            : Theme.of(context).textTheme.headlineSmall)
+                        ?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.6,
+                        ),
               ),
             ),
             const SizedBox(height: 3),
