@@ -1,0 +1,64 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "sistema-pedidos-grupo5-2026",
+          "appId": "1:696339704648:android:eabfcb162fa8a5f06d617d",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "sistema-pedidos-grupo5-2026",
+          "configurations": {
+            "android": "1:696339704648:android:eabfcb162fa8a5f06d617d",
+            "ios": "1:696339704648:ios:453ef53e0e9c03606d617d",
+            "macos": "1:696339704648:ios:453ef53e0e9c03606d617d",
+            "web": "1:696339704648:web:f59270b0c936e1126d617d",
+            "windows": "1:696339704648:web:9d6993f9582708d16d617d"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "auth": {
+    "providers": {
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Sistema de Pedidos",
+        "supportEmail": "carlosgabrielrm1444@gmail.com"
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "headers": [
+      {
+        "source": "/",
+        "headers": [{"key": "Cache-Control", "value": "no-cache, no-store, must-revalidate"}]
+      },
+      {
+        "source": "/index.html",
+        "headers": [{"key": "Cache-Control", "value": "no-cache, no-store, must-revalidate"}]
+      },
+      {
+        "source": "/flutter_bootstrap.js",
+        "headers": [{"key": "Cache-Control", "value": "no-cache, no-store, must-revalidate"}]
+      },
+      {
+        "source": "/main.dart.js",
+        "headers": [{"key": "Cache-Control", "value": "no-cache, no-store, must-revalidate"}]
+      },
+      {
+        "source": "/flutter_service_worker.js",
+        "headers": [{"key": "Cache-Control", "value": "no-cache, no-store, must-revalidate"}]
+      }
+    ],
+    "rewrites": [{"source": "**", "destination": "/index.html"}]
+  }
+}

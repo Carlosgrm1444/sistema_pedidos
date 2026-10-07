@@ -19,8 +19,8 @@ cantidades y calcular el total.
 - No se requiere base de datos.
 - No se desarrollará toda la aplicación en la primera etapa.
 - Todos los integrantes deben poder explicar y modificar el código.
-- En este arranque solo se creó la plantilla base; la interfaz se definirá
-  posteriormente con el equipo.
+- La interfaz actual incluye acceso, registro temporal y captura de productos
+  para formar un pedido con cantidades y total.
 
 ## Tecnología
 

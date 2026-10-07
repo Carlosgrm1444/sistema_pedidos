@@ -1,11 +1,11 @@
 {
-    "name": "sistema_pedido",
-    "short_name": "sistema_pedido",
+    "name": "Sistema de pedidos",
+    "short_name": "Pedidos",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#E9EEF5",
+    "theme_color": "#215FD1",
+    "description": "Gestiona clientes, productos y pedidos en equipo.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
