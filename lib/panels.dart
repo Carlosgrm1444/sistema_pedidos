@@ -964,6 +964,70 @@ class UsersPanel extends StatelessWidget {
   final List<Item> users;
   final String currentUid;
 
+  static int _nameOrder(Item a, Item b) =>
+      a.text('name').toLowerCase().compareTo(b.text('name').toLowerCase());
+
+  Widget _sectionLabel(BuildContext context, String title, int count) =>
+      Padding(
+        padding: const EdgeInsets.fromLTRB(24, 22, 24, 8),
+        child: Row(
+          children: [
+            Text(
+              title,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(width: 10),
+            Chip(
+              label: Text('$count'),
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+            ),
+          ],
+        ),
+      );
+
+  Widget _userCard(BuildContext context, Item user) => PolishedCard(
+    margin: const EdgeInsets.fromLTRB(20, 4, 20, 4),
+    child: ListTile(
+      leading: CircleAvatar(
+        child: Text(
+          user.text('name').isEmpty ? 'U' : user.text('name')[0].toUpperCase(),
+        ),
+      ),
+      title: Text(user.text('name')),
+      subtitle: Text(user.text('email')),
+      trailing: SizedBox(
+        width: 155,
+        child: DropdownButtonFormField<String>(
+          isExpanded: true,
+          key: ValueKey('${user.id}-${user.text('role')}'),
+          initialValue: user.text('role'),
+          decoration: const InputDecoration(
+            labelText: 'Permiso',
+            isDense: true,
+          ),
+          items: const [
+            DropdownMenuItem(value: 'pending', child: Text('Sin permiso')),
+            DropdownMenuItem(value: 'collaborator', child: Text('Colaborador')),
+            DropdownMenuItem(value: 'admin', child: Text('Administrador')),
+          ],
+          onChanged: user.id == currentUid
+              ? null
+              : (role) {
+                  if (role != null) {
+                    saveAction(
+                      context,
+                      () => Store.instance.setRole(user.id, role),
+                    );
+                  }
+                },
+        ),
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) => Center(
     child: ConstrainedBox(
@@ -980,62 +1044,40 @@ class UsersPanel extends StatelessWidget {
               title: 'Sin usuarios todavía',
               message: 'Los integrantes aparecerán aquí al iniciar sesión.',
             ),
-          for (final user in users)
-            PolishedCard(
-              margin: const EdgeInsets.fromLTRB(20, 4, 20, 4),
-              child: ListTile(
-                leading: CircleAvatar(
-                  child: Text(
-                    user.text('name').isEmpty
-                        ? 'U'
-                        : user.text('name')[0].toUpperCase(),
-                  ),
-                ),
-                title: Text(user.text('name')),
-                subtitle: Text(user.text('email')),
-                trailing: SizedBox(
-                  width: 155,
-                  child: DropdownButtonFormField<String>(
-                    isExpanded: true,
-                    key: ValueKey('${user.id}-${user.text('role')}'),
-                    initialValue: user.text('role'),
-                    decoration: const InputDecoration(
-                      labelText: 'Permiso',
-                      isDense: true,
-                    ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'pending',
-                        child: Text('Sin permiso'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'collaborator',
-                        child: Text('Colaborador'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'admin',
-                        child: Text('Administrador'),
-                      ),
-                    ],
-                    onChanged: user.id == currentUid
-                        ? null
-                        : (role) {
-                            if (role != null) {
-                              saveAction(
-                                context,
-                                () => Store.instance.setRole(user.id, role),
-                              );
-                            }
-                          },
-                  ),
-                ),
-              ),
-            ),
+          ..._sections(context),
           const SizedBox(height: 24),
         ],
       ),
     ),
   );
+
+  List<Widget> _sections(BuildContext context) {
+    final pending =
+        users.where((user) => user.text('role') == 'pending').toList()
+          ..sort(_nameOrder);
+    final permitted =
+        users.where((user) => user.text('role') != 'pending').toList()
+          ..sort((a, b) {
+            final roleA = a.text('role') == 'admin' ? 0 : 1;
+            final roleB = b.text('role') == 'admin' ? 0 : 1;
+            return roleA == roleB ? _nameOrder(a, b) : roleA.compareTo(roleB);
+          });
+    return [
+      if (pending.isNotEmpty) ...[
+        _sectionLabel(context, 'Sin permisos asignados', pending.length),
+        for (final user in pending) _userCard(context, user),
+      ],
+      if (permitted.isNotEmpty) ...[
+        if (pending.isNotEmpty)
+          const Padding(
+            padding: EdgeInsets.fromLTRB(24, 18, 24, 0),
+            child: Divider(),
+          ),
+        _sectionLabel(context, 'Usuarios con permisos', permitted.length),
+        for (final user in permitted) _userCard(context, user),
+      ],
+    ];
+  }
 }
 
 class OrdersPanel extends StatefulWidget {
