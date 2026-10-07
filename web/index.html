@@ -116,7 +116,30 @@
     For more details:
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
-  <script src="flutter_bootstrap.js" async=""></script>
+  <script type="module">
+    // FlutterFire puede dejar pendiente la importación automática de módulos.
+    // Precargarlos y exponerlos evita que una recarga se quede en el splash.
+    const firebaseModules = Promise.all([
+      import('https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js'),
+      import('https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore-pipelines.js'),
+    ]);
+    const firebaseTimeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Firebase tardó demasiado en cargar')), 10000),
+    );
+    Promise.race([firebaseModules, firebaseTimeout]).then(([core, auth, firestore]) => {
+      window.firebase_core = core;
+      window.firebase_auth = auth;
+      window.firebase_firestore = firestore;
+      const script = document.createElement('script');
+      script.src = 'flutter_bootstrap.js';
+      document.body.appendChild(script);
+    }).catch((error) => {
+      document.getElementById('splash')?.remove();
+      document.body.innerHTML = '<p style="font:16px sans-serif;text-align:center;margin-top:25vh">No se pudieron cargar los servicios. Recarga la página.</p>';
+      console.error('Firebase module loading failed', error);
+    });
+  </script>
 
 
 </body></html>
