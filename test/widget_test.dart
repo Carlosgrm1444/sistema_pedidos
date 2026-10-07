@@ -132,4 +132,61 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('las listas de indicadores se muestran completas', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final lines = List.generate(
+      6,
+      (index) => {
+        'productId': 'product-$index',
+        'name': 'Producto ${index + 1}',
+        'categoryName': 'Categoría',
+        'unitPriceCents': 1000,
+        'quantity': 7 - index,
+      },
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: OverviewPanel(
+            orders: [
+              Item('order-1', {
+                'statusId': 'delivered',
+                'totalCents': 21000,
+                'lines': lines,
+              }),
+            ],
+            products: const [],
+            clients: const [],
+            statuses: const [
+              Item('pending', {'name': 'En espera'}),
+              Item('preparing', {'name': 'En preparación'}),
+              Item('shipped', {'name': 'Enviado'}),
+              Item('delivered', {'name': 'Entregado'}),
+            ],
+            users: const [],
+            admin: false,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Productos más solicitados'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+
+    expect(
+      find.text('Producto 6 · 2 unidades', skipOffstage: false),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
 }

@@ -189,6 +189,11 @@ class _OverviewPanelState extends State<OverviewPanel> {
         ),
       );
     final narrow = MediaQuery.sizeOf(context).width < 700;
+    final productRows = bestProducts.length < 6 ? bestProducts.length : 6;
+    final breakdownRows = widget.statuses.length > productRows
+        ? widget.statuses.length
+        : productRows;
+    final breakdownHeight = 118.0 + (breakdownRows * 44.0);
 
     return Center(
       child: ConstrainedBox(
@@ -475,7 +480,7 @@ class _OverviewPanelState extends State<OverviewPanel> {
                 children: [
                   SizedBox(
                     width: narrow ? double.infinity : 430,
-                    height: narrow ? null : 252,
+                    height: narrow ? null : breakdownHeight,
                     child: PolishedCard(
                       child: Padding(
                         padding: const EdgeInsets.all(20),
@@ -526,7 +531,7 @@ class _OverviewPanelState extends State<OverviewPanel> {
                   ),
                   SizedBox(
                     width: narrow ? double.infinity : 430,
-                    height: narrow ? null : 252,
+                    height: narrow ? null : breakdownHeight,
                     child: PolishedCard(
                       child: Padding(
                         padding: const EdgeInsets.all(20),
