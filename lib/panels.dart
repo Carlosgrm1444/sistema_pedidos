@@ -359,6 +359,7 @@ class _OverviewPanelState extends State<OverviewPanel> {
                             ),
                             const SizedBox(height: 18),
                             SizedBox(
+                              width: double.infinity,
                               height: 142,
                               child: CustomPaint(
                                 painter: _TrendPainter(
