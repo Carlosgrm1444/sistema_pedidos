@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
 
 import 'data.dart';
+import 'design.dart';
+import 'feedback.dart';
 
 void showProblem(BuildContext context, Object error) {
-  ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(SnackBar(content: Text(error.toString())));
+  AppFeedback.instance.error();
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Row(
+        children: [
+          const Icon(Icons.error_outline_rounded, color: Colors.white),
+          const SizedBox(width: 10),
+          Expanded(child: Text(error.toString())),
+        ],
+      ),
+    ),
+  );
 }
 
 Future<void> saveAction(
@@ -14,37 +25,71 @@ Future<void> saveAction(
 ) async {
   try {
     await action();
+    AppFeedback.instance.success();
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Cambios guardados')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle_outline_rounded, color: Colors.white),
+              SizedBox(width: 10),
+              Text('Cambios guardados'),
+            ],
+          ),
+        ),
+      );
     }
   } catch (error) {
     if (context.mounted) showProblem(context, error);
   }
 }
 
-Widget panelHeader(String title, String subtitle, {Widget? action}) => Padding(
-  padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-  child: Wrap(
-    spacing: 18,
-    runSpacing: 12,
-    alignment: WrapAlignment.spaceBetween,
-    crossAxisAlignment: WrapCrossAlignment.center,
-    children: [
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
-          ),
-          Text(subtitle),
-        ],
+Widget panelHeader(String title, String subtitle, {Widget? action}) => Builder(
+  builder: (context) {
+    final theme = Theme.of(context);
+    return MotionReveal(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 28, 24, 18),
+        child: Wrap(
+          spacing: 18,
+          runSpacing: 15,
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'ESPACIO DE TRABAJO',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    letterSpacing: 1.8,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 7),
+                Text(
+                  title,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.7,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  subtitle,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            ?action,
+          ],
+        ),
       ),
-      ?action,
-    ],
-  ),
+    );
+  },
 );
 
 String itemName(List<Item> items, String id) {
@@ -217,7 +262,7 @@ class _OverviewPanelState extends State<OverviewPanel> {
                 children: [
                   SizedBox(
                     width: 430,
-                    child: Card(
+                    child: PolishedCard(
                       child: Padding(
                         padding: const EdgeInsets.all(20),
                         child: Column(
@@ -235,17 +280,28 @@ class _OverviewPanelState extends State<OverviewPanel> {
                                 '${status.text('name')} · ${visible.where((o) => o.text('statusId') == status.id).length}',
                               ),
                               const SizedBox(height: 5),
-                              LinearProgressIndicator(
-                                value: visible.isEmpty
-                                    ? 0
-                                    : visible
-                                              .where(
-                                                (o) =>
-                                                    o.text('statusId') ==
-                                                    status.id,
-                                              )
-                                              .length /
-                                          visible.length,
+                              TweenAnimationBuilder<double>(
+                                tween: Tween(
+                                  begin: 0,
+                                  end: visible.isEmpty
+                                      ? 0
+                                      : visible
+                                                .where(
+                                                  (o) =>
+                                                      o.text('statusId') ==
+                                                      status.id,
+                                                )
+                                                .length /
+                                            visible.length,
+                                ),
+                                duration: motionDuration(context, 600),
+                                curve: Curves.easeOutCubic,
+                                builder: (context, progress, _) =>
+                                    LinearProgressIndicator(
+                                      value: progress,
+                                      minHeight: 7,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
                               ),
                               const SizedBox(height: 12),
                             ],
@@ -256,7 +312,7 @@ class _OverviewPanelState extends State<OverviewPanel> {
                   ),
                   SizedBox(
                     width: 430,
-                    child: Card(
+                    child: PolishedCard(
                       child: Padding(
                         padding: const EdgeInsets.all(20),
                         child: Column(
@@ -274,8 +330,19 @@ class _OverviewPanelState extends State<OverviewPanel> {
                                 '${product.key} · ${product.value} unidades',
                               ),
                               const SizedBox(height: 5),
-                              LinearProgressIndicator(
-                                value: product.value / maxProduct,
+                              TweenAnimationBuilder<double>(
+                                tween: Tween(
+                                  begin: 0,
+                                  end: product.value / maxProduct,
+                                ),
+                                duration: motionDuration(context, 600),
+                                curve: Curves.easeOutCubic,
+                                builder: (context, progress, _) =>
+                                    LinearProgressIndicator(
+                                      value: progress,
+                                      minHeight: 7,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
                               ),
                               const SizedBox(height: 12),
                             ],
@@ -301,16 +368,42 @@ class _OverviewPanelState extends State<OverviewPanel> {
     IconData icon,
   ) => SizedBox(
     width: 225,
-    child: Card(
+    child: PolishedCard(
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: Theme.of(context).colorScheme.primary),
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: Theme.of(context).colorScheme.primary),
+            ),
             const SizedBox(height: 14),
-            Text(value, style: Theme.of(context).textTheme.headlineSmall),
-            Text(label),
+            AnimatedSwitcher(
+              duration: motionDuration(context, 230),
+              child: Text(
+                value,
+                key: ValueKey(value),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.6,
+                ),
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       ),
@@ -362,6 +455,7 @@ class CategoriesPanel extends StatelessWidget {
                     name: controller.text,
                     active: active,
                   );
+                  AppFeedback.instance.success();
                   if (context.mounted) Navigator.pop(context);
                 } catch (error) {
                   if (context.mounted) showProblem(context, error);
@@ -392,19 +486,25 @@ class CategoriesPanel extends StatelessWidget {
             ),
           ),
           if (categories.isEmpty)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(28),
-                child: Text('Crea la primera categoría.'),
-              ),
+            const EmptyState(
+              icon: Icons.category_outlined,
+              title: 'Sin categorías todavía',
+              message:
+                  'Crea la primera categoría para organizar tus productos.',
             ),
           for (final item in categories)
-            Card(
+            PolishedCard(
               margin: const EdgeInsets.fromLTRB(20, 4, 20, 4),
               child: ListTile(
-                leading: const Icon(Icons.category_outlined),
+                leading: const CatalogIcon(Icons.category_outlined),
                 title: Text(item.text('name')),
-                subtitle: Text(item.active ? 'Activa' : 'Inactiva'),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 5),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: ActiveBadge(item.active),
+                  ),
+                ),
                 trailing: IconButton(
                   tooltip: 'Editar',
                   icon: const Icon(Icons.edit_outlined),
@@ -513,6 +613,7 @@ class ProductsPanel extends StatelessWidget {
                     priceCents: cents,
                     active: active,
                   );
+                  AppFeedback.instance.success();
                   if (context.mounted) Navigator.pop(context);
                 } catch (error) {
                   if (context.mounted) showProblem(context, error);
@@ -544,30 +645,41 @@ class ProductsPanel extends StatelessWidget {
             ),
           ),
           if (categories.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(20),
-              child: Text('Primero crea una categoría.'),
+            const EmptyState(
+              icon: Icons.category_outlined,
+              title: 'Primero crea una categoría',
+              message: 'Los productos necesitan una categoría activa.',
             ),
-          if (products.isEmpty)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(28),
-                child: Text('Aún no hay productos.'),
-              ),
+          if (products.isEmpty && categories.isNotEmpty)
+            const EmptyState(
+              icon: Icons.inventory_2_outlined,
+              title: 'Sin productos todavía',
+              message: 'Añade productos con su precio para crear pedidos.',
             ),
           for (final item in products)
-            Card(
+            PolishedCard(
               margin: const EdgeInsets.fromLTRB(20, 4, 20, 4),
               child: ListTile(
-                leading: const Icon(Icons.inventory_2_outlined),
+                leading: const CatalogIcon(Icons.inventory_2_outlined),
                 title: Text(item.text('name')),
-                subtitle: Text(
-                  '${itemName(categories, item.text('categoryId'))} · ${item.active ? 'Activo' : 'Inactivo'}',
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 5),
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    children: [
+                      Text(itemName(categories, item.text('categoryId'))),
+                      ActiveBadge(item.active),
+                    ],
+                  ),
                 ),
                 trailing: Wrap(
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text(money(item.number('priceCents'))),
+                    Text(
+                      money(item.number('priceCents')),
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
                     IconButton(
                       tooltip: 'Editar',
                       icon: const Icon(Icons.edit_outlined),
@@ -656,6 +768,7 @@ class ClientsPanel extends StatelessWidget {
                     assignedUid: assignedUid,
                     active: active,
                   );
+                  AppFeedback.instance.success();
                   if (context.mounted) Navigator.pop(context);
                 } catch (error) {
                   if (context.mounted) showProblem(context, error);
@@ -686,20 +799,27 @@ class ClientsPanel extends StatelessWidget {
             ),
           ),
           if (clients.isEmpty)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(28),
-                child: Text('Aún no hay clientes.'),
-              ),
+            const EmptyState(
+              icon: Icons.groups_outlined,
+              title: 'Sin clientes todavía',
+              message: 'Registra un cliente y asígnalo a un colaborador.',
             ),
           for (final item in clients)
-            Card(
+            PolishedCard(
               margin: const EdgeInsets.fromLTRB(20, 4, 20, 4),
               child: ListTile(
-                leading: const Icon(Icons.business_outlined),
+                leading: const CatalogIcon(Icons.groups_outlined),
                 title: Text(item.text('name')),
-                subtitle: Text(
-                  '${itemName(users, item.text('assignedUid'))} · ${item.active ? 'Activo' : 'Inactivo'}',
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 5),
+                  child: Wrap(
+                    spacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(itemName(users, item.text('assignedUid'))),
+                      ActiveBadge(item.active),
+                    ],
+                  ),
                 ),
                 trailing: IconButton(
                   tooltip: 'Editar',
@@ -749,6 +869,7 @@ class StatusesPanel extends StatelessWidget {
                 } else {
                   await Store.instance.saveStatus(item.id, name.text);
                 }
+                AppFeedback.instance.success();
                 if (dialogContext.mounted) Navigator.pop(dialogContext);
               } catch (error) {
                 if (dialogContext.mounted) showProblem(dialogContext, error);
@@ -778,10 +899,16 @@ class StatusesPanel extends StatelessWidget {
             ),
           ),
           for (var index = 0; index < statuses.length; index++)
-            Card(
+            PolishedCard(
               margin: const EdgeInsets.fromLTRB(20, 4, 20, 4),
               child: ListTile(
-                leading: CircleAvatar(child: Text('${index + 1}')),
+                leading: CircleAvatar(
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.10),
+                  foregroundColor: Theme.of(context).colorScheme.primary,
+                  child: Text('${index + 1}'),
+                ),
                 title: Text(statuses[index].text('name')),
                 subtitle: Text(
                   statuses[index].id == 'delivered'
@@ -847,12 +974,23 @@ class UsersPanel extends StatelessWidget {
             'Usuarios',
             'Al ingresar por primera vez quedan sin permisos.',
           ),
-          if (users.isEmpty) const Center(child: Text('Aún no hay usuarios.')),
+          if (users.isEmpty)
+            const EmptyState(
+              icon: Icons.person_add_alt_outlined,
+              title: 'Sin usuarios todavía',
+              message: 'Los integrantes aparecerán aquí al iniciar sesión.',
+            ),
           for (final user in users)
-            Card(
+            PolishedCard(
               margin: const EdgeInsets.fromLTRB(20, 4, 20, 4),
               child: ListTile(
-                leading: const CircleAvatar(child: Icon(Icons.person_outline)),
+                leading: CircleAvatar(
+                  child: Text(
+                    user.text('name').isEmpty
+                        ? 'U'
+                        : user.text('name')[0].toUpperCase(),
+                  ),
+                ),
                 title: Text(user.text('name')),
                 subtitle: Text(user.text('email')),
                 trailing: SizedBox(
@@ -1056,17 +1194,15 @@ class _OrdersPanelState extends State<OrdersPanel> {
                 ),
               ),
             if (visible.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(28),
-                child: Text(
-                  widget.clients.isEmpty
-                      ? 'Primero registra o asigna un cliente.'
-                      : 'Aún no hay pedidos para esta selección.',
-                  textAlign: TextAlign.center,
-                ),
+              EmptyState(
+                icon: Icons.receipt_long_outlined,
+                title: 'Sin pedidos para mostrar',
+                message: widget.clients.isEmpty
+                    ? 'Primero registra o asigna un cliente.'
+                    : 'Cuando crees un pedido, aparecerá aquí.',
               ),
             for (final order in visible)
-              Card(
+              PolishedCard(
                 margin: const EdgeInsets.fromLTRB(20, 5, 20, 5),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -1232,6 +1368,7 @@ class _OrderEditorState extends State<OrderEditor> {
       productId = null;
       quantity.text = '1';
     });
+    AppFeedback.instance.select();
   }
 
   Future<void> _save() async {
@@ -1249,6 +1386,7 @@ class _OrderEditorState extends State<OrderEditor> {
             ? 'pending'
             : widget.statuses.firstWhere((s) => s.id != 'delivered').id,
       );
+      AppFeedback.instance.success();
       if (mounted) Navigator.pop(context);
     } catch (error) {
       if (mounted) showProblem(context, error);
@@ -1354,7 +1492,10 @@ class _OrderEditorState extends State<OrderEditor> {
                       IconButton(
                         tooltip: 'Quitar',
                         icon: const Icon(Icons.close),
-                        onPressed: () => setState(() => lines.removeAt(index)),
+                        onPressed: () {
+                          setState(() => lines.removeAt(index));
+                          AppFeedback.instance.select();
+                        },
                       ),
                     ],
                   ),

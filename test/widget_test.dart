@@ -65,4 +65,65 @@ void main() {
     expect(find.text('Nuevo pedido'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('catálogos e indicadores caben en una pantalla de celular', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: ProductsPanel(
+            products: [
+              Item('product-1', {
+                'name': 'Producto de prueba',
+                'categoryId': 'category-1',
+                'priceCents': 2599,
+              }),
+            ],
+            categories: [
+              Item('category-1', {'name': 'Categoría'}),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: OverviewPanel(
+            orders: [],
+            products: [],
+            clients: [],
+            statuses: [],
+            users: [],
+            admin: false,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: StatusesPanel(
+            statuses: [
+              Item('pending', {'name': 'En espera', 'rank': 10}),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
 }

@@ -24,7 +24,8 @@ del plan Spark sin facturación. El icono y la pantalla de inicio usan
   filtrables por colaborador y cliente para el administrador. Todavía no se
   cargaron datos simulados; esos indicadores parten vacíos.
 - La interfaz se adapta a pantallas grandes y pequeñas y permite tema claro u
-  oscuro.
+  oscuro. Incluye transiciones, tarjetas interactivas, señales hápticas en
+  móviles y sonidos breves opcionales (se pueden silenciar desde la interfaz).
 
 La cuenta `carlosgabrielrm1444@gmail.com` es el administrador inicial. Debe
 entrar una vez con Google para crear su perfil; las demás cuentas quedarán
@@ -84,6 +85,23 @@ la configuración desde una cuenta con permisos de administrador:
 npx --yes firebase-tools@15.32.1 login
 npx --yes firebase-tools@15.32.1 deploy --only auth,firestore:rules
 ```
+
+### Publicar la aplicación web
+
+El hosting del proyecto ya está configurado en `firebase.json`. Desde la rama
+`carlos`, inicia sesión con una cuenta autorizada para el proyecto y publica:
+
+```bash
+flutter pub get
+flutter build web
+npx --yes firebase-tools@15.32.1 login
+npx --yes firebase-tools@15.32.1 deploy --only hosting --project sistema-pedidos-grupo5-2026
+```
+
+Sitio: <https://sistema-pedidos-grupo5-2026.web.app/>. Cada nueva versión del
+código requiere volver a ejecutar `flutter build web` antes del despliegue.
+Google Authentication necesita que el dominio web esté en la lista de dominios
+autorizados de Firebase; el dominio de este Hosting ya está registrado.
 
 Los catálogos y pedidos se almacenan en Cloud Firestore. No se necesita una
 base de datos local. Desactivar un cliente, producto o categoría evita usarlo

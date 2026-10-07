@@ -5,14 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data.dart';
+import 'design.dart';
 import 'firebase_options.dart';
+import 'feedback.dart';
 import 'workspace.dart';
-
-const brandBlue = Color(0xFF215FD1);
-const brandSlate = Color(0xFF68788F);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppFeedback.instance.load();
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
     runApp(
       const MaterialApp(
@@ -75,47 +75,21 @@ class _OrderAppState extends State<OrderApp> {
   Future<void> _toggleTheme() async {
     final dark = _mode != ThemeMode.dark;
     setState(() => _mode = dark ? ThemeMode.dark : ThemeMode.light);
+    AppFeedback.instance.select();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('darkMode', dark);
   }
 
   @override
   Widget build(BuildContext context) {
-    ThemeData theme(Brightness brightness) => ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: brandBlue,
-        brightness: brightness,
-      ),
-      scaffoldBackgroundColor: brightness == Brightness.dark
-          ? const Color(0xFF111827)
-          : const Color(0xFFF3F6FA),
-      appBarTheme: AppBarTheme(
-        backgroundColor: brightness == Brightness.dark
-            ? const Color(0xFF1A2434)
-            : Colors.white,
-        foregroundColor: brightness == Brightness.dark
-            ? Colors.white
-            : const Color(0xFF203049),
-      ),
-      cardTheme: CardThemeData(
-        elevation: 0,
-        color: brightness == Brightness.dark
-            ? const Color(0xFF1B293B)
-            : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-
     return MaterialApp(
       title: 'Sistema de pedidos',
       debugShowCheckedModeBanner: false,
-      theme: theme(Brightness.light),
-      darkTheme: theme(Brightness.dark),
+      theme: appTheme(Brightness.light),
+      darkTheme: appTheme(Brightness.dark),
       themeMode: _mode,
+      themeAnimationDuration: const Duration(milliseconds: 300),
+      themeAnimationCurve: Curves.easeInOutCubic,
       home: AuthGate(mode: _mode, onToggleTheme: _toggleTheme),
     );
   }
@@ -227,14 +201,27 @@ class BrandedProgress extends StatelessWidget {
   const BrandedProgress({super.key});
   @override
   Widget build(BuildContext context) => Scaffold(
-    body: Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset('assets/brand/mark.png', width: 96, height: 96),
-          const SizedBox(height: 20),
-          const CircularProgressIndicator(),
-        ],
+    body: AppBackdrop(
+      child: Center(
+        child: MotionReveal(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset('assets/brand/mark.png', width: 104, height: 104),
+              const SizedBox(height: 24),
+              const SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(strokeWidth: 3),
+              ),
+              const SizedBox(height: 15),
+              Text(
+                'Preparando tu espacio de trabajo…',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
+        ),
       ),
     ),
   );
@@ -259,82 +246,264 @@ class _LoginViewState extends State<LoginView> {
     });
     try {
       await Store.instance.signInWithGoogle();
+      AppFeedback.instance.success();
     } catch (exception) {
-      if (mounted) setState(() => error = exception.toString());
+      AppFeedback.instance.error();
+      if (mounted) {
+        setState(() {
+          error = exception is FirebaseAuthException
+              ? switch (exception.code) {
+                  'popup-closed-by-user' =>
+                    'Cerraste la ventana de Google. Puedes intentarlo de nuevo.',
+                  'unauthorized-domain' =>
+                    'Este dominio aún no está autorizado en Firebase.',
+                  _ => exception.message ?? 'No se pudo iniciar sesión.',
+                }
+              : 'No se pudo iniciar sesión: $exception';
+        });
+      }
     } finally {
       if (mounted) setState(() => busy = false);
     }
   }
 
+  Widget _feature(BuildContext context, IconData icon, String label) => Padding(
+    padding: const EdgeInsets.only(top: 16),
+    child: Row(
+      children: [
+        Icon(icon, size: 21, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 12),
+        Expanded(child: Text(label)),
+      ],
+    ),
+  );
+
   @override
   Widget build(BuildContext context) => Scaffold(
-    body: Center(
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 440),
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/brand/mark.png',
-                      width: 126,
-                      height: 126,
+    body: AppBackdrop(
+      child: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final wide = constraints.maxWidth >= 850;
+            final theme = Theme.of(context);
+            final intro = MotionReveal(
+              child: Column(
+                crossAxisAlignment: wide
+                    ? CrossAxisAlignment.start
+                    : CrossAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/brand/mark.png',
+                    width: wide ? 114 : 84,
+                    height: wide ? 114 : 84,
+                  ),
+                  SizedBox(height: wide ? 26 : 12),
+                  Text(
+                    'SISTEMA DE PEDIDOS',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 2.2,
                     ),
-                    const SizedBox(height: 14),
-                    Text(
-                      'Sistema de pedidos',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                      textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 11),
+                  Text(
+                    'Cada pedido,\nbajo control.',
+                    textAlign: wide ? TextAlign.left : TextAlign.center,
+                    style:
+                        (wide
+                                ? theme.textTheme.displaySmall
+                                : theme.textTheme.headlineMedium)
+                            ?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -1.2,
+                              height: 1.06,
+                            ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Organiza clientes, productos y entregas en un solo lugar.',
+                    textAlign: wide ? TextAlign.left : TextAlign.center,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      height: 1.5,
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Ingresa con tu cuenta de Google para continuar.',
-                      textAlign: TextAlign.center,
+                  ),
+                  if (wide) ...[
+                    const SizedBox(height: 22),
+                    _feature(
+                      context,
+                      Icons.auto_graph_rounded,
+                      'Visibilidad clara de tus indicadores',
                     ),
-                    const SizedBox(height: 28),
-                    if (error != null) ...[
-                      Text(
-                        error!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                    FilledButton.icon(
-                      onPressed: busy ? null : _signIn,
-                      icon: const Icon(Icons.login),
-                      label: Text(
-                        busy ? 'Conectando…' : 'Continuar con Google',
-                      ),
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size.fromHeight(50),
-                      ),
+                    _feature(
+                      context,
+                      Icons.lock_outline_rounded,
+                      'Acceso seguro para cada integrante',
                     ),
-                    const SizedBox(height: 16),
-                    TextButton.icon(
-                      onPressed: widget.onToggleTheme,
-                      icon: Icon(
-                        widget.mode == ThemeMode.dark
-                            ? Icons.light_mode
-                            : Icons.dark_mode,
-                      ),
-                      label: Text(
-                        widget.mode == ThemeMode.dark
-                            ? 'Tema claro'
-                            : 'Tema oscuro',
-                      ),
+                    _feature(
+                      context,
+                      Icons.local_shipping_outlined,
+                      'Entregas con confirmación',
                     ),
                   ],
+                ],
+              ),
+            );
+            final signInCard = MotionReveal(
+              offset: 22,
+              child: PolishedCard(
+                child: Padding(
+                  padding: EdgeInsets.all(wide ? 34 : 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Chip(
+                          avatar: const Icon(Icons.shield_outlined, size: 17),
+                          label: const Text('Espacio de trabajo privado'),
+                        ),
+                      ),
+                      const SizedBox(height: 22),
+                      Text(
+                        'Bienvenido de nuevo',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.6,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Entra con tu cuenta de Google para continuar con tus pedidos.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 26),
+                      AnimatedSwitcher(
+                        duration: motionDuration(context, 220),
+                        child: error == null
+                            ? const SizedBox.shrink(key: ValueKey('no-error'))
+                            : Padding(
+                                key: ValueKey(error),
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.errorContainer,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    error!,
+                                    style: TextStyle(
+                                      color: theme.colorScheme.onErrorContainer,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                      ),
+                      FilledButton.icon(
+                        onPressed: busy ? null : _signIn,
+                        icon: busy
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.login_rounded),
+                        label: Text(
+                          busy ? 'Conectando…' : 'Continuar con Google',
+                        ),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size.fromHeight(54),
+                        ),
+                      ),
+                      const SizedBox(height: 13),
+                      Text(
+                        'Tu administrador asignará tus permisos después del primer ingreso.',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 22),
+                      Divider(color: theme.colorScheme.outlineVariant),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 8,
+                        children: [
+                          TextButton.icon(
+                            onPressed: widget.onToggleTheme,
+                            icon: Icon(
+                              widget.mode == ThemeMode.dark
+                                  ? Icons.light_mode_outlined
+                                  : Icons.dark_mode_outlined,
+                              size: 19,
+                            ),
+                            label: Text(
+                              widget.mode == ThemeMode.dark
+                                  ? 'Tema claro'
+                                  : 'Tema oscuro',
+                            ),
+                          ),
+                          AnimatedBuilder(
+                            animation: AppFeedback.instance,
+                            builder: (context, _) => TextButton.icon(
+                              onPressed: () => AppFeedback.instance.toggle(),
+                              icon: Icon(
+                                AppFeedback.instance.soundsEnabled
+                                    ? Icons.volume_up_outlined
+                                    : Icons.volume_off_outlined,
+                                size: 19,
+                              ),
+                              label: Text(
+                                AppFeedback.instance.soundsEnabled
+                                    ? 'Sonido activo'
+                                    : 'Sin sonido',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ),
+            );
+            return Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 28,
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1060),
+                  child: wide
+                      ? Row(
+                          children: [
+                            Expanded(child: intro),
+                            const SizedBox(width: 48),
+                            SizedBox(width: 420, child: signInCard),
+                          ],
+                        )
+                      : Column(
+                          children: [
+                            intro,
+                            const SizedBox(height: 30),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 460),
+                              child: signInCard,
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     ),
@@ -345,35 +514,54 @@ class PendingView extends StatelessWidget {
   const PendingView({super.key});
   @override
   Widget build(BuildContext context) => Scaffold(
-    body: Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 500),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset('assets/brand/mark.png', width: 90, height: 90),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Acceso pendiente',
-                    style: Theme.of(context).textTheme.headlineSmall,
+    body: AppBackdrop(
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: MotionReveal(
+              child: PolishedCard(
+                child: Padding(
+                  padding: const EdgeInsets.all(34),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/brand/mark.png',
+                        width: 86,
+                        height: 86,
+                      ),
+                      const SizedBox(height: 22),
+                      Icon(
+                        Icons.hourglass_top_rounded,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 30,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Acceso pendiente',
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Tu cuenta ya está registrada. Un administrador debe asignarte permisos para usar la aplicación.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 26),
+                      OutlinedButton.icon(
+                        onPressed: () => Store.instance.auth.signOut(),
+                        icon: const Icon(Icons.logout),
+                        label: const Text('Cerrar sesión'),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Tu cuenta ya se registró. Un administrador debe asignarte permisos para usar la aplicación.',
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  OutlinedButton.icon(
-                    onPressed: () => Store.instance.auth.signOut(),
-                    icon: const Icon(Icons.logout),
-                    label: const Text('Cerrar sesión'),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
