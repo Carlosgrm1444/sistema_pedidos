@@ -988,43 +988,91 @@ class UsersPanel extends StatelessWidget {
         ),
       );
 
-  Widget _userCard(BuildContext context, Item user) => PolishedCard(
-    margin: const EdgeInsets.fromLTRB(20, 4, 20, 4),
-    child: ListTile(
-      leading: CircleAvatar(
+  Widget _permissionField(BuildContext context, Item user) =>
+      DropdownButtonFormField<String>(
+        isExpanded: true,
+        key: ValueKey('${user.id}-${user.text('role')}'),
+        initialValue: user.text('role'),
+        decoration: const InputDecoration(labelText: 'Permiso', isDense: true),
+        items: const [
+          DropdownMenuItem(value: 'pending', child: Text('Sin permiso')),
+          DropdownMenuItem(value: 'collaborator', child: Text('Colaborador')),
+          DropdownMenuItem(value: 'admin', child: Text('Administrador')),
+        ],
+        onChanged: user.id == currentUid
+            ? null
+            : (role) {
+                if (role != null) {
+                  saveAction(
+                    context,
+                    () => Store.instance.setRole(user.id, role),
+                  );
+                }
+              },
+      );
+
+  Widget _userIdentity(BuildContext context, Item user) => Row(
+    children: [
+      CircleAvatar(
         child: Text(
           user.text('name').isEmpty ? 'U' : user.text('name')[0].toUpperCase(),
         ),
       ),
-      title: Text(user.text('name')),
-      subtitle: Text(user.text('email')),
-      trailing: SizedBox(
-        width: 155,
-        child: DropdownButtonFormField<String>(
-          isExpanded: true,
-          key: ValueKey('${user.id}-${user.text('role')}'),
-          initialValue: user.text('role'),
-          decoration: const InputDecoration(
-            labelText: 'Permiso',
-            isDense: true,
-          ),
-          items: const [
-            DropdownMenuItem(value: 'pending', child: Text('Sin permiso')),
-            DropdownMenuItem(value: 'collaborator', child: Text('Colaborador')),
-            DropdownMenuItem(value: 'admin', child: Text('Administrador')),
+      const SizedBox(width: 14),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              user.text('name'),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              user.text('email'),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 13,
+              ),
+            ),
           ],
-          onChanged: user.id == currentUid
-              ? null
-              : (role) {
-                  if (role != null) {
-                    saveAction(
-                      context,
-                      () => Store.instance.setRole(user.id, role),
-                    );
-                  }
-                },
         ),
       ),
+    ],
+  );
+
+  Widget _userCard(BuildContext context, Item user) => PolishedCard(
+    margin: const EdgeInsets.fromLTRB(20, 5, 20, 5),
+    child: LayoutBuilder(
+      builder: (context, constraints) {
+        final mobile = constraints.maxWidth < 560;
+        return Padding(
+          padding: const EdgeInsets.all(14),
+          child: mobile
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _userIdentity(context, user),
+                    const SizedBox(height: 14),
+                    _permissionField(context, user),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(child: _userIdentity(context, user)),
+                    const SizedBox(width: 18),
+                    SizedBox(
+                      width: 175,
+                      child: _permissionField(context, user),
+                    ),
+                  ],
+                ),
+        );
+      },
     ),
   );
 
