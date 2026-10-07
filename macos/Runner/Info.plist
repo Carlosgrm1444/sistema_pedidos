@@ -8,6 +8,21 @@
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIconFile</key>
 	<string></string>
+	<key>GIDClientID</key>
+	<string>696339704648-uiibltdhvena9g38c1ci8e4aa7vmc7qr.apps.googleusercontent.com</string>
+	<key>GIDServerClientID</key>
+	<string>696339704648-h25ifihdfqmu09tj14rqql9rqa5ttr9o.apps.googleusercontent.com</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.696339704648-uiibltdhvena9g38c1ci8e4aa7vmc7qr</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>

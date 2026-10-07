@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+    function profileExists() {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(me()));
+    }
+    function role() {
+      return get(/databases/$(database)/documents/users/$(me())).data.role;
+    }
+    function admin() { return profileExists() && role() == 'admin'; }
+    function collaborator() { return profileExists() && role() == 'collaborator'; }
+    function activeMember() { return admin() || collaborator(); }
+    function bootstrapAdmin() {
+      return signedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email == 'carlosgabrielrm1444@gmail.com';
+    }
+    function assignedClient(clientId) {
+      return get(/databases/$(database)/documents/clients/$(clientId)).data.assignedUid == me();
+    }
+    function validAdminOrderUpdate() {
+      return (resource.data.deliveredAt == null && (
+          (request.resource.data.statusId == 'delivered'
+            && request.resource.data.deliveredAt == request.time
+            && request.resource.data.deliveredBy == me())
+          || (request.resource.data.statusId != 'delivered'
+            && request.resource.data.deliveredAt == null
+            && !request.resource.data.keys().hasAny(['deliveredBy']))
+        )) || (resource.data.deliveredAt != null
+          && request.resource.data.deliveredAt == resource.data.deliveredAt
+          && request.resource.data.statusId == 'delivered'
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['assignedUid', 'clientName', 'updatedAt']));
+    }
+
+    match /users/{userId} {
+      allow get: if signedIn() && (userId == me() || admin());
+      allow list: if admin();
+      allow create: if signedIn() && userId == me()
+        && request.resource.data.keys().hasOnly(['email', 'name', 'role', 'createdAt'])
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.role == (bootstrapAdmin() ? 'admin' : 'pending');
+      allow update: if admin()
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.role in ['pending', 'collaborator', 'admin'];
+      allow delete: if false;
+    }
+
+    match /categories/{id} {
+      allow read: if activeMember();
+      allow create, update: if activeMember();
+      allow delete: if admin();
+    }
+    match /products/{id} {
+      allow read: if activeMember();
+      allow create, update: if activeMember()
+        && request.resource.data.priceCents is int
+        && request.resource.data.priceCents >= 0;
+      allow delete: if admin();
+    }
+    match /clients/{id} {
+      allow get, list: if admin() || (collaborator() && resource.data.assignedUid == me());
+      allow create, update, delete: if admin();
+    }
+    match /statuses/{id} {
+      allow read: if activeMember();
+      allow create, update, delete: if admin();
+    }
+    match /orders/{id} {
+      allow get, list: if admin() || (collaborator() && resource.data.assignedUid == me());
+      allow create: if activeMember()
+        && request.resource.data.createdByUid == me()
+        && request.resource.data.statusId != 'delivered'
+        && request.resource.data.deliveredAt == null
+        && !request.resource.data.keys().hasAny(['deliveredBy'])
+        && (admin() || (
+          collaborator()
+          && request.resource.data.assignedUid == me()
+          && assignedClient(request.resource.data.clientId)
+        ));
+      allow update: if (admin() && validAdminOrderUpdate()) || (
+        collaborator()
+        && resource.data.assignedUid == me()
+        && resource.data.deliveredAt == null
+        && request.resource.data.assignedUid == resource.data.assignedUid
+        && request.resource.data.clientId == resource.data.clientId
+        && request.resource.data.createdByUid == resource.data.createdByUid
+        && request.resource.data.deliveredAt == null
+        && request.resource.data.statusId != 'delivered'
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['lines', 'totalCents', 'statusId', 'updatedAt'])
+      );
+      allow delete: if admin() || (
+        collaborator() && resource.data.assignedUid == me()
+        && resource.data.deliveredAt == null
+      );
+    }
+  }
+}
