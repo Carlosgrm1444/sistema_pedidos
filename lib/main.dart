@@ -12,7 +12,6 @@ import 'workspace.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await AppFeedback.instance.load();
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
     runApp(
       const MaterialApp(
@@ -27,25 +26,97 @@ Future<void> main() async {
     );
     return;
   }
-  try {
+  runApp(const BootstrapApp());
+}
+
+class BootstrapApp extends StatefulWidget {
+  const BootstrapApp({super.key});
+
+  @override
+  State<BootstrapApp> createState() => _BootstrapAppState();
+}
+
+class _BootstrapAppState extends State<BootstrapApp> {
+  late Future<void> _initialization;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialization = _initializeServices();
+  }
+
+  Future<void> _initializeServices() async {
+    await AppFeedback.instance.load().timeout(const Duration(seconds: 3));
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
-    );
-    runApp(const OrderApp());
-  } catch (error) {
-    runApp(
-      MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: Text(
-              'No se pudo conectar a Firebase: $error',
-              textAlign: TextAlign.center,
+    ).timeout(const Duration(seconds: 15));
+  }
+
+  void _retry() => setState(() => _initialization = _initializeServices());
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<void>(
+    future: _initialization,
+    builder: (context, snapshot) {
+      final theme = appTheme(Brightness.light);
+      if (snapshot.hasError) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: theme,
+          home: Scaffold(
+            body: AppBackdrop(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: PolishedCard(
+                    margin: const EdgeInsets.all(16),
+                    child: Padding(
+                      padding: const EdgeInsets.all(28),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.cloud_off_rounded, size: 42),
+                          const SizedBox(height: 14),
+                          const Text(
+                            'No se pudo iniciar la aplicación',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Revisa tu conexión a internet y vuelve a intentarlo.',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 22),
+                          FilledButton.icon(
+                            onPressed: _retry,
+                            icon: const Icon(Icons.refresh_rounded),
+                            label: const Text('Reintentar'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-    );
-  }
+        );
+      }
+      if (snapshot.connectionState != ConnectionState.done) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: theme,
+          home: const BrandedProgress(),
+        );
+      }
+      return const OrderApp();
+    },
+  );
 }
 
 class OrderApp extends StatefulWidget {
