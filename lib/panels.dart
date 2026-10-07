@@ -414,8 +414,8 @@ class _OverviewPanelState extends State<OverviewPanel> {
                     ),
                   ),
                   SizedBox(
-                    width: narrow ? double.infinity : 330,
-                    height: narrow ? null : 244,
+                    width: narrow ? double.infinity : 430,
+                    height: narrow ? null : 260,
                     child: PolishedCard(
                       child: Padding(
                         padding: const EdgeInsets.all(20),
@@ -429,37 +429,70 @@ class _OverviewPanelState extends State<OverviewPanel> {
                             const SizedBox(height: 18),
                             Row(
                               children: [
-                                SizedBox(
-                                  width: 92,
-                                  height: 92,
-                                  child: Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      CircularProgressIndicator(
-                                        value: deliveryRate,
-                                        strokeWidth: 10,
-                                        backgroundColor: Theme.of(
-                                          context,
-                                        ).colorScheme.outlineVariant,
-                                      ),
-                                      Text(
-                                        '${(deliveryRate * 100).round()}%',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w800,
+                                TweenAnimationBuilder<double>(
+                                  tween: Tween(begin: 0, end: deliveryRate),
+                                  duration: motionDuration(context, 700),
+                                  curve: Curves.easeOutCubic,
+                                  builder: (context, progress, _) => SizedBox(
+                                    width: narrow ? 112 : 132,
+                                    height: narrow ? 112 : 132,
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        SizedBox.expand(
+                                          child: CircularProgressIndicator(
+                                            value: progress,
+                                            strokeWidth: narrow ? 12 : 14,
+                                            strokeCap: StrokeCap.round,
+                                            backgroundColor: Theme.of(
+                                              context,
+                                            ).colorScheme.outlineVariant,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                        Text(
+                                          '${(progress * 100).round()}%',
+                                          style:
+                                              (narrow
+                                                      ? Theme.of(
+                                                          context,
+                                                        ).textTheme.titleMedium
+                                                      : Theme.of(context)
+                                                            .textTheme
+                                                            .headlineSmall)
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w800,
+                                                    letterSpacing: -0.5,
+                                                  ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(width: 18),
+                                SizedBox(width: narrow ? 16 : 24),
                                 Expanded(
-                                  child: Text(
-                                    delivered == 0
-                                        ? 'Aún no hay pedidos entregados.'
-                                        : '$delivered pedidos completados correctamente.',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyMedium,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '$delivered de ${visible.length}',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleLarge
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        delivered == 0
+                                            ? 'Aún no hay pedidos entregados.'
+                                            : 'Pedidos completados correctamente.',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
