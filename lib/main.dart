@@ -267,17 +267,6 @@ class _LoginViewState extends State<LoginView> {
     }
   }
 
-  Widget _feature(BuildContext context, IconData icon, String label) => Padding(
-    padding: const EdgeInsets.only(top: 16),
-    child: Row(
-      children: [
-        Icon(icon, size: 21, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(width: 12),
-        Expanded(child: Text(label)),
-      ],
-    ),
-  );
-
   @override
   Widget build(BuildContext context) => Scaffold(
     body: AppBackdrop(
@@ -307,46 +296,6 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ),
                   const SizedBox(height: 11),
-                  Text(
-                    'Cada pedido,\nbajo control.',
-                    textAlign: wide ? TextAlign.left : TextAlign.center,
-                    style:
-                        (wide
-                                ? theme.textTheme.displaySmall
-                                : theme.textTheme.headlineMedium)
-                            ?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -1.2,
-                              height: 1.06,
-                            ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Organiza clientes, productos y entregas en un solo lugar.',
-                    textAlign: wide ? TextAlign.left : TextAlign.center,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      height: 1.5,
-                    ),
-                  ),
-                  if (wide) ...[
-                    const SizedBox(height: 22),
-                    _feature(
-                      context,
-                      Icons.auto_graph_rounded,
-                      'Visibilidad clara de tus indicadores',
-                    ),
-                    _feature(
-                      context,
-                      Icons.lock_outline_rounded,
-                      'Acceso seguro para cada integrante',
-                    ),
-                    _feature(
-                      context,
-                      Icons.local_shipping_outlined,
-                      'Entregas con confirmación',
-                    ),
-                  ],
                 ],
               ),
             );
@@ -358,14 +307,6 @@ class _LoginViewState extends State<LoginView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Chip(
-                          avatar: const Icon(Icons.shield_outlined, size: 17),
-                          label: const Text('Espacio de trabajo privado'),
-                        ),
-                      ),
-                      const SizedBox(height: 22),
                       Text(
                         'Bienvenido de nuevo',
                         style: theme.textTheme.headlineSmall?.copyWith(
@@ -420,14 +361,6 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         style: FilledButton.styleFrom(
                           minimumSize: const Size.fromHeight(54),
-                        ),
-                      ),
-                      const SizedBox(height: 13),
-                      Text(
-                        'Tu administrador asignará tus permisos después del primer ingreso.',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 22),
