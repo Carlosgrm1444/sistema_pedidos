@@ -269,74 +269,81 @@ class _OverviewPanelState extends State<OverviewPanel> {
               ),
             Padding(
               padding: const EdgeInsets.all(20),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final metricWidth = constraints.maxWidth < 700
-                      ? (constraints.maxWidth - 14) / 2
-                      : 208.0;
-                  return Wrap(
-                    spacing: 14,
-                    runSpacing: 14,
-                    children: [
-                      _metric(
-                        context,
-                        'Pedidos',
-                        '${visible.length}',
-                        Icons.receipt_long_outlined,
-                        width: metricWidth,
-                      ),
-                      _metric(
-                        context,
-                        'Entregados',
-                        '$delivered',
-                        Icons.check_circle_outline,
-                        width: metricWidth,
-                      ),
-                      _metric(
-                        context,
-                        'Pendientes',
-                        '${visible.length - delivered}',
-                        Icons.schedule,
-                        width: metricWidth,
-                      ),
-                      _metric(
-                        context,
-                        'Importe total',
-                        money(total),
-                        Icons.payments_outlined,
-                        width: metricWidth,
-                      ),
-                      _metric(
-                        context,
-                        'Promedio por pedido',
-                        money(average),
-                        Icons.stacked_line_chart_rounded,
-                        width: metricWidth,
-                      ),
-                      _metric(
-                        context,
-                        'Tasa de entrega',
-                        '${(deliveryRate * 100).round()}%',
-                        Icons.speed_rounded,
-                        width: metricWidth,
-                      ),
-                      _metric(
-                        context,
-                        'Clientes activos',
-                        '${activeClients.length}',
-                        Icons.groups_outlined,
-                        width: metricWidth,
-                      ),
-                      _metric(
-                        context,
-                        'Unidades solicitadas',
-                        '$units',
-                        Icons.inventory_2_outlined,
-                        width: metricWidth,
-                      ),
-                    ],
-                  );
-                },
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 874),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final compact = constraints.maxWidth < 700;
+                      final columns = compact ? 2 : 4;
+                      final metricWidth =
+                          (constraints.maxWidth - (14 * (columns - 1))) /
+                          columns;
+                      return Wrap(
+                        spacing: 14,
+                        runSpacing: 14,
+                        children: [
+                          _metric(
+                            context,
+                            'Pedidos',
+                            '${visible.length}',
+                            Icons.receipt_long_outlined,
+                            width: metricWidth,
+                          ),
+                          _metric(
+                            context,
+                            'Entregados',
+                            '$delivered',
+                            Icons.check_circle_outline,
+                            width: metricWidth,
+                          ),
+                          _metric(
+                            context,
+                            'Pendientes',
+                            '${visible.length - delivered}',
+                            Icons.schedule,
+                            width: metricWidth,
+                          ),
+                          _metric(
+                            context,
+                            'Importe total',
+                            money(total),
+                            Icons.payments_outlined,
+                            width: metricWidth,
+                          ),
+                          _metric(
+                            context,
+                            'Promedio por pedido',
+                            money(average),
+                            Icons.stacked_line_chart_rounded,
+                            width: metricWidth,
+                          ),
+                          _metric(
+                            context,
+                            'Tasa de entrega',
+                            '${(deliveryRate * 100).round()}%',
+                            Icons.speed_rounded,
+                            width: metricWidth,
+                          ),
+                          _metric(
+                            context,
+                            'Clientes activos',
+                            '${activeClients.length}',
+                            Icons.groups_outlined,
+                            width: metricWidth,
+                          ),
+                          _metric(
+                            context,
+                            'Unidades solicitadas',
+                            '$units',
+                            Icons.inventory_2_outlined,
+                            width: metricWidth,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
             Padding(
