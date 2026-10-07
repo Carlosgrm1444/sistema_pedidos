@@ -207,64 +207,71 @@ class _OverviewPanelState extends State<OverviewPanel> {
             if (widget.admin)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: [
-                    SizedBox(
-                      width: 260,
-                      child: DropdownButtonFormField<String>(
-                        isExpanded: true,
-                        initialValue: userFilter,
-                        decoration: const InputDecoration(
-                          labelText: 'Colaborador',
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 874),
+                    child: Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        SizedBox(
+                          width: narrow ? double.infinity : 260,
+                          child: DropdownButtonFormField<String>(
+                            isExpanded: true,
+                            initialValue: userFilter,
+                            decoration: const InputDecoration(
+                              labelText: 'Colaborador',
+                            ),
+                            items: [
+                              const DropdownMenuItem(
+                                value: '',
+                                child: Text('Todos'),
+                              ),
+                              for (final user in widget.users.where(
+                                (u) => u.text('role') == 'collaborator',
+                              ))
+                                DropdownMenuItem(
+                                  value: user.id,
+                                  child: Text(user.text('name')),
+                                ),
+                            ],
+                            onChanged: (value) => setState(() {
+                              userFilter = value ?? '';
+                              clientFilter = '';
+                            }),
+                          ),
                         ),
-                        items: [
-                          const DropdownMenuItem(
-                            value: '',
-                            child: Text('Todos'),
-                          ),
-                          for (final user in widget.users.where(
-                            (u) => u.text('role') == 'collaborator',
-                          ))
-                            DropdownMenuItem(
-                              value: user.id,
-                              child: Text(user.text('name')),
+                        SizedBox(
+                          width: narrow ? double.infinity : 260,
+                          child: DropdownButtonFormField<String>(
+                            isExpanded: true,
+                            key: ValueKey('$userFilter-$clientFilter'),
+                            initialValue: clientFilter,
+                            decoration: const InputDecoration(
+                              labelText: 'Cliente',
                             ),
-                        ],
-                        onChanged: (value) => setState(() {
-                          userFilter = value ?? '';
-                          clientFilter = '';
-                        }),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 260,
-                      child: DropdownButtonFormField<String>(
-                        isExpanded: true,
-                        key: ValueKey('$userFilter-$clientFilter'),
-                        initialValue: clientFilter,
-                        decoration: const InputDecoration(labelText: 'Cliente'),
-                        items: [
-                          const DropdownMenuItem(
-                            value: '',
-                            child: Text('Todos'),
+                            items: [
+                              const DropdownMenuItem(
+                                value: '',
+                                child: Text('Todos'),
+                              ),
+                              for (final client in widget.clients.where(
+                                (c) =>
+                                    userFilter.isEmpty ||
+                                    c.text('assignedUid') == userFilter,
+                              ))
+                                DropdownMenuItem(
+                                  value: client.id,
+                                  child: Text(client.text('name')),
+                                ),
+                            ],
+                            onChanged: (value) =>
+                                setState(() => clientFilter = value ?? ''),
                           ),
-                          for (final client in widget.clients.where(
-                            (c) =>
-                                userFilter.isEmpty ||
-                                c.text('assignedUid') == userFilter,
-                          ))
-                            DropdownMenuItem(
-                              value: client.id,
-                              child: Text(client.text('name')),
-                            ),
-                        ],
-                        onChanged: (value) =>
-                            setState(() => clientFilter = value ?? ''),
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             Padding(
@@ -348,311 +355,351 @@ class _OverviewPanelState extends State<OverviewPanel> {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Wrap(
-                spacing: 14,
-                runSpacing: 14,
-                children: [
-                  SizedBox(
-                    width: narrow ? double.infinity : 560,
-                    child: PolishedCard(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Actividad de los últimos 7 días',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${visible.length} pedidos en el periodo seleccionado',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                            const SizedBox(height: 18),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 142,
-                              child: CustomPaint(
-                                key: const ValueKey('orders-trend-chart'),
-                                painter: _TrendPainter(
-                                  values: trend,
-                                  color: Theme.of(context).colorScheme.primary,
-                                  gridColor: Theme.of(
-                                    context,
-                                  ).colorScheme.outlineVariant,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: List.generate(
-                                7,
-                                (index) => Expanded(
-                                  child: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    alignment: index == 0
-                                        ? Alignment.centerLeft
-                                        : index == 6
-                                        ? Alignment.centerRight
-                                        : Alignment.center,
-                                    child: Text(
-                                      _dayLabel(
-                                        today.subtract(
-                                          Duration(days: 6 - index),
-                                        ),
-                                      ),
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.labelSmall,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: narrow ? double.infinity : 430,
-                    height: narrow ? null : 260,
-                    child: PolishedCard(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Salud del flujo',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 18),
-                            Row(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 874),
+                  child: Wrap(
+                    spacing: 14,
+                    runSpacing: 14,
+                    children: [
+                      SizedBox(
+                        width: narrow ? double.infinity : 430,
+                        height: narrow ? null : 316,
+                        child: PolishedCard(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                TweenAnimationBuilder<double>(
-                                  tween: Tween(begin: 0, end: deliveryRate),
-                                  duration: motionDuration(context, 700),
-                                  curve: Curves.easeOutCubic,
-                                  builder: (context, progress, _) => SizedBox(
-                                    width: narrow ? 112 : 132,
-                                    height: narrow ? 112 : 132,
-                                    child: Stack(
-                                      alignment: Alignment.center,
-                                      children: [
-                                        SizedBox.expand(
-                                          child: CircularProgressIndicator(
-                                            value: progress,
-                                            strokeWidth: narrow ? 12 : 14,
-                                            strokeCap: StrokeCap.round,
-                                            backgroundColor: Theme.of(
-                                              context,
-                                            ).colorScheme.outlineVariant,
-                                          ),
-                                        ),
-                                        Text(
-                                          '${(progress * 100).round()}%',
-                                          style:
-                                              (narrow
-                                                      ? Theme.of(
-                                                          context,
-                                                        ).textTheme.titleMedium
-                                                      : Theme.of(context)
-                                                            .textTheme
-                                                            .headlineSmall)
-                                                  ?.copyWith(
-                                                    fontWeight: FontWeight.w800,
-                                                    letterSpacing: -0.5,
-                                                  ),
-                                        ),
-                                      ],
+                                Text(
+                                  'Actividad de los últimos 7 días',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${visible.length} pedidos en el periodo seleccionado',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                                const SizedBox(height: 18),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 142,
+                                  child: CustomPaint(
+                                    key: const ValueKey('orders-trend-chart'),
+                                    painter: _TrendPainter(
+                                      values: trend,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                      gridColor: Theme.of(
+                                        context,
+                                      ).colorScheme.outlineVariant,
                                     ),
                                   ),
                                 ),
-                                SizedBox(width: narrow ? 16 : 24),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '$delivered de ${visible.length}',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleLarge
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.w800,
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: List.generate(
+                                    7,
+                                    (index) => Expanded(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        alignment: index == 0
+                                            ? Alignment.centerLeft
+                                            : index == 6
+                                            ? Alignment.centerRight
+                                            : Alignment.center,
+                                        child: Text(
+                                          _dayLabel(
+                                            today.subtract(
+                                              Duration(days: 6 - index),
                                             ),
+                                          ),
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.labelSmall,
+                                        ),
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        delivered == 0
-                                            ? 'Aún no hay pedidos entregados.'
-                                            : 'Pedidos completados correctamente.',
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodyMedium,
-                                      ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
+                      SizedBox(
+                        width: narrow ? double.infinity : 430,
+                        height: narrow ? null : 316,
+                        child: PolishedCard(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Salud del flujo',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
+                                const SizedBox(height: 18),
+                                if (!narrow) const Spacer(),
+                                Row(
+                                  children: [
+                                    TweenAnimationBuilder<double>(
+                                      tween: Tween(begin: 0, end: deliveryRate),
+                                      duration: motionDuration(context, 700),
+                                      curve: Curves.easeOutCubic,
+                                      builder: (context, progress, _) => SizedBox(
+                                        width: narrow ? 112 : 132,
+                                        height: narrow ? 112 : 132,
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            SizedBox.expand(
+                                              child: CircularProgressIndicator(
+                                                value: progress,
+                                                strokeWidth: narrow ? 12 : 14,
+                                                strokeCap: StrokeCap.round,
+                                                backgroundColor: Theme.of(
+                                                  context,
+                                                ).colorScheme.outlineVariant,
+                                              ),
+                                            ),
+                                            Text(
+                                              '${(progress * 100).round()}%',
+                                              style:
+                                                  (narrow
+                                                          ? Theme.of(context)
+                                                                .textTheme
+                                                                .titleMedium
+                                                          : Theme.of(context)
+                                                                .textTheme
+                                                                .headlineSmall)
+                                                      ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                        letterSpacing: -0.5,
+                                                      ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: narrow ? 16 : 24),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '$delivered de ${visible.length}',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleLarge
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w800,
+                                                ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            delivered == 0
+                                                ? 'Aún no hay pedidos entregados.'
+                                                : 'Pedidos completados correctamente.',
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.bodyMedium,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (!narrow) const Spacer(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Wrap(
-                spacing: 14,
-                runSpacing: 14,
-                children: [
-                  SizedBox(
-                    width: narrow ? double.infinity : 430,
-                    height: narrow ? null : breakdownHeight,
-                    child: PolishedCard(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Pedidos por estado',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 16),
-                            if (widget.statuses.isEmpty)
-                              const Text('Aún no hay estados.'),
-                            for (final status in widget.statuses) ...[
-                              Text(
-                                '${status.text('name')} · ${visible.where((o) => o.text('statusId') == status.id).length}',
-                              ),
-                              const SizedBox(height: 5),
-                              TweenAnimationBuilder<double>(
-                                tween: Tween(
-                                  begin: 0,
-                                  end: visible.isEmpty
-                                      ? 0
-                                      : visible
-                                                .where(
-                                                  (o) =>
-                                                      o.text('statusId') ==
-                                                      status.id,
-                                                )
-                                                .length /
-                                            visible.length,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 874),
+                  child: Wrap(
+                    spacing: 14,
+                    runSpacing: 14,
+                    children: [
+                      SizedBox(
+                        width: narrow ? double.infinity : 430,
+                        height: narrow ? null : breakdownHeight,
+                        child: PolishedCard(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Pedidos por estado',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
                                 ),
-                                duration: motionDuration(context, 600),
-                                curve: Curves.easeOutCubic,
-                                builder: (context, progress, _) =>
-                                    LinearProgressIndicator(
-                                      value: progress,
-                                      minHeight: 7,
-                                      borderRadius: BorderRadius.circular(8),
+                                const SizedBox(height: 16),
+                                if (widget.statuses.isEmpty)
+                                  const Text('Aún no hay estados.'),
+                                for (final status in widget.statuses) ...[
+                                  Text(
+                                    '${status.text('name')} · ${visible.where((o) => o.text('statusId') == status.id).length}',
+                                  ),
+                                  const SizedBox(height: 5),
+                                  TweenAnimationBuilder<double>(
+                                    tween: Tween(
+                                      begin: 0,
+                                      end: visible.isEmpty
+                                          ? 0
+                                          : visible
+                                                    .where(
+                                                      (o) =>
+                                                          o.text('statusId') ==
+                                                          status.id,
+                                                    )
+                                                    .length /
+                                                visible.length,
                                     ),
-                              ),
-                              const SizedBox(height: 12),
-                            ],
-                          ],
+                                    duration: motionDuration(context, 600),
+                                    curve: Curves.easeOutCubic,
+                                    builder: (context, progress, _) =>
+                                        LinearProgressIndicator(
+                                          value: progress,
+                                          minHeight: 7,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                ],
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: narrow ? double.infinity : 430,
-                    height: narrow ? null : breakdownHeight,
-                    child: PolishedCard(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Productos más solicitados',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 16),
-                            if (bestProducts.isEmpty)
-                              const Text('Aún no hay datos.'),
-                            for (final product in bestProducts.take(6)) ...[
-                              Text(
-                                '${product.key} · ${product.value} unidades',
-                              ),
-                              const SizedBox(height: 5),
-                              TweenAnimationBuilder<double>(
-                                tween: Tween(
-                                  begin: 0,
-                                  end: product.value / maxProduct,
+                      SizedBox(
+                        width: narrow ? double.infinity : 430,
+                        height: narrow ? null : breakdownHeight,
+                        child: PolishedCard(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Productos más solicitados',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
                                 ),
-                                duration: motionDuration(context, 600),
-                                curve: Curves.easeOutCubic,
-                                builder: (context, progress, _) =>
-                                    LinearProgressIndicator(
-                                      value: progress,
-                                      minHeight: 7,
-                                      borderRadius: BorderRadius.circular(8),
+                                const SizedBox(height: 16),
+                                if (bestProducts.isEmpty)
+                                  const Text('Aún no hay datos.'),
+                                for (final product in bestProducts.take(6)) ...[
+                                  Text(
+                                    '${product.key} · ${product.value} unidades',
+                                  ),
+                                  const SizedBox(height: 5),
+                                  TweenAnimationBuilder<double>(
+                                    tween: Tween(
+                                      begin: 0,
+                                      end: product.value / maxProduct,
                                     ),
-                              ),
-                              const SizedBox(height: 12),
-                            ],
-                          ],
+                                    duration: motionDuration(context, 600),
+                                    curve: Curves.easeOutCubic,
+                                    builder: (context, progress, _) =>
+                                        LinearProgressIndicator(
+                                          value: progress,
+                                          minHeight: 7,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                ],
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-              child: PolishedCard(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Actividad reciente',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 10),
-                      if (recent.isEmpty)
-                        const Text('Los pedidos recientes aparecerán aquí.'),
-                      for (final order in recent.take(4))
-                        ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: CircleAvatar(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.12),
-                            child: Icon(
-                              Icons.receipt_long_rounded,
-                              color: Theme.of(context).colorScheme.primary,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 874),
+                  child: PolishedCard(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Actividad reciente',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 10),
+                          if (recent.isEmpty)
+                            const Text(
+                              'Los pedidos recientes aparecerán aquí.',
                             ),
-                          ),
-                          title: Text(
-                            itemName(widget.clients, order.text('clientId')),
-                          ),
-                          subtitle: Text(
-                            '${itemName(widget.statuses, order.text('statusId'))} · ${orderLines(order).length} productos',
-                          ),
-                          trailing: Text(
-                            money(order.number('totalCents')),
-                            style: const TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                        ),
-                    ],
+                          for (final order in recent.take(4))
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: CircleAvatar(
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.12),
+                                child: Icon(
+                                  Icons.receipt_long_rounded,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                              title: Text(
+                                itemName(
+                                  widget.clients,
+                                  order.text('clientId'),
+                                ),
+                              ),
+                              subtitle: Text(
+                                '${itemName(widget.statuses, order.text('statusId'))} · ${orderLines(order).length} productos',
+                              ),
+                              trailing: Text(
+                                money(order.number('totalCents')),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),

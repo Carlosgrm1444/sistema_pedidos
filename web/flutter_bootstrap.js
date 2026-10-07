@@ -15,7 +15,7 @@
 
   for (const build of _flutter.buildConfig.builds) {
     if (build.mainJsPath) {
-      build.mainJsPath = `${build.mainJsPath}?v=20261007-chart-width`;
+      build.mainJsPath = `${build.mainJsPath}?v=20261007-dashboard-grid-v2`;
     }
   }
 
