@@ -273,42 +273,36 @@ class _LoginViewState extends State<LoginView> {
       child: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final wide = constraints.maxWidth >= 850;
             final theme = Theme.of(context);
-            final intro = MotionReveal(
-              child: Column(
-                crossAxisAlignment: wide
-                    ? CrossAxisAlignment.start
-                    : CrossAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    'assets/brand/mark.png',
-                    width: wide ? 114 : 84,
-                    height: wide ? 114 : 84,
-                  ),
-                  SizedBox(height: wide ? 26 : 12),
-                  Text(
-                    'SISTEMA DE PEDIDOS',
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 2.2,
-                    ),
-                  ),
-                  const SizedBox(height: 11),
-                ],
-              ),
-            );
             final signInCard = MotionReveal(
               offset: 22,
               child: PolishedCard(
                 child: Padding(
-                  padding: EdgeInsets.all(wide ? 34 : 24),
+                  padding: EdgeInsets.all(
+                    constraints.maxWidth >= 520 ? 38 : 24,
+                  ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      Image.asset(
+                        'assets/brand/mark.png',
+                        width: 96,
+                        height: 96,
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        'SISTEMA DE PEDIDOS',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 2.2,
+                        ),
+                      ),
+                      const SizedBox(height: 28),
                       Text(
                         'Bienvenido de nuevo',
+                        textAlign: TextAlign.center,
                         style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.6,
@@ -317,6 +311,7 @@ class _LoginViewState extends State<LoginView> {
                       const SizedBox(height: 8),
                       Text(
                         'Entra con tu cuenta de Google para continuar con tus pedidos.',
+                        textAlign: TextAlign.center,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           height: 1.5,
@@ -331,6 +326,7 @@ class _LoginViewState extends State<LoginView> {
                                 key: ValueKey(error),
                                 padding: const EdgeInsets.only(bottom: 16),
                                 child: Container(
+                                  width: double.infinity,
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                     color: theme.colorScheme.errorContainer,
@@ -338,6 +334,7 @@ class _LoginViewState extends State<LoginView> {
                                   ),
                                   child: Text(
                                     error!,
+                                    textAlign: TextAlign.center,
                                     style: TextStyle(
                                       color: theme.colorScheme.onErrorContainer,
                                     ),
@@ -360,7 +357,7 @@ class _LoginViewState extends State<LoginView> {
                           busy ? 'Conectando…' : 'Continuar con Google',
                         ),
                         style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(54),
+                          minimumSize: const Size(double.infinity, 54),
                         ),
                       ),
                       const SizedBox(height: 22),
@@ -414,25 +411,8 @@ class _LoginViewState extends State<LoginView> {
                   vertical: 28,
                 ),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1060),
-                  child: wide
-                      ? Row(
-                          children: [
-                            Expanded(child: intro),
-                            const SizedBox(width: 48),
-                            SizedBox(width: 420, child: signInCard),
-                          ],
-                        )
-                      : Column(
-                          children: [
-                            intro,
-                            const SizedBox(height: 30),
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 460),
-                              child: signInCard,
-                            ),
-                          ],
-                        ),
+                  constraints: const BoxConstraints(maxWidth: 460),
+                  child: signInCard,
                 ),
               ),
             );
