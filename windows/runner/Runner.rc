@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "sistema_pedido" "\0"
+            VALUE "FileDescription", "Sistema de pedidos" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "sistema_pedido" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
             VALUE "OriginalFilename", "sistema_pedido.exe" "\0"
-            VALUE "ProductName", "sistema_pedido" "\0"
+            VALUE "ProductName", "Sistema de pedidos" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
