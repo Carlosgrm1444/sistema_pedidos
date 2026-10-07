@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -46,7 +48,6 @@ class _BootstrapAppState extends State<BootstrapApp> {
   }
 
   Future<void> _initializeServices() async {
-    await AppFeedback.instance.load().timeout(const Duration(seconds: 3));
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     ).timeout(const Duration(seconds: 15));
@@ -132,6 +133,7 @@ class _OrderAppState extends State<OrderApp> {
   @override
   void initState() {
     super.initState();
+    unawaited(AppFeedback.instance.load());
     SharedPreferences.getInstance().then((prefs) {
       if (mounted) {
         setState(
